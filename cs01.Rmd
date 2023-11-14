@@ -14,7 +14,6 @@ output:
 knitr::opts_chunk$set(echo = TRUE, warning=FALSE, message=FALSE)
 ```
 
-
 ### Load packages
 
 ```{r load-packages, message=FALSE}
@@ -22,13 +21,16 @@ library(tidymodels)
 library(tidyverse)
 library(dplyr)
 library(ggplot2)
+library(janitor)
 ```
 
 ## Question
 What's the best policy for determining impairment - which fluid, which chemical and at what cutoff?
 
-## The Data
+-   Which compound, in which matrix, and at what cutoff is the best biomarker of recent use?
+-   Is the placebo associated with the release of chemical components within participants' bodies, leading them to perceive a sensation of being "high"?
 
+## The Data
 
 ### Data Import
 
@@ -41,8 +43,153 @@ OF = read.csv("data/OF.csv")
 
 ### Data Wrangling
 
-```{r}
+We recoded and releveled variables (`Treatment` and `Group`), cleans column names, and renames specific columns (`x11_oh_thc` to `thcoh`, `thc_v` to `thcv`, `thccooh_gluc` to `thc_cooh_gluc`, and `thccooh` to `thc_cooh`) in all 3 tables. Using `janitor` package to organized column names.
 
+```{r}
+OF <- OF |>
+  mutate(Treatment = fct_recode(Treatment, 
+                                "5.9% THC (low dose)" = "5.90%",
+                                "13.4% THC (high dose)" = "13.40%"),
+         Treatment = fct_relevel(Treatment, "Placebo", "5.9% THC (low dose)"),
+         Group = fct_recode(Group, 
+                            "Occasional user" = "Not experienced user",
+                            "Frequent user" = "Experienced user" )) |>  
+  janitor::clean_names() |>
+  rename(thcoh = x11_oh_thc,
+         thcv = thc_v)
+OF
+
+Blood <- Blood |> 
+  mutate(Treatment = fct_recode(Treatment, 
+                                "5.9% THC (low dose)" = "5.90%",
+                                "13.4% THC (high dose)" = "13.40%"),
+         Treatment = fct_relevel(Treatment, "Placebo", "5.9% THC (low dose)")) |> 
+  janitor::clean_names() |>
+  rename(thcoh = x11_oh_thc,
+         thccooh = thc_cooh,
+         thccooh_gluc = thc_cooh_gluc,
+         thcv = thc_v)
+Blood
+
+Breath <- Breath |> 
+  mutate(Treatment = fct_recode(Treatment, 
+                                "5.9% THC (low dose)" = "5.90%",
+                                "13.4% THC (high dose)" = "13.40%"),
+         Treatment = fct_relevel(Treatment, "Placebo", "5.9% THC (low dose)"),
+         Group = fct_recode(Group, 
+                            "Occasional user" = "Not experienced user",
+                            "Frequent user" = "Experienced user" )) |> 
+  janitor::clean_names() |> 
+  rename(thc = thc_pg_pad)
+Breath
+```
+
+Created 3 tables based on specific minutes and labeled accordingly, covering pre-smoking and subsequent post-smoking time periods for blood, breath, and oral fluid data.
+
+```{r}
+timepoints_Blood <- tibble(
+  start = c(-400, 0, 30, 70, 100, 180, 210, 240, 270, 300),
+  stop = c(
+    0,
+    30,
+    70,
+    100,
+    180,
+    210,
+    240,
+    270,
+    300,
+    max(Blood$time_from_start, na.rm = TRUE)
+  ),
+  timepoint = c(
+    "pre-smoking",
+    "0-30 min",
+    "31-70 min",
+    "71-100 min",
+    "101-180 min",
+    "181-210 min",
+    "211-240 min",
+    "241-270 min",
+    "271-300 min",
+    "301+ min"
+  )
+)
+
+timepoints_Breath <- tibble(
+  start = c(-400, 0, 40, 90, 180, 210, 240, 270),
+  stop = c(
+    0,
+    40,
+    90,
+    180,
+    210,
+    240,
+    270,
+    max(Breath$time_from_start, na.rm = TRUE)
+  ),
+  timepoint = c(
+    "pre-smoking",
+    "0-40 min",
+    "41-90 min",
+    "91-180 min",
+    "181-210 min",
+    "211-240 min",
+    "241-270 min",
+    "271+ min"
+  )
+)
+
+timepoints_OF <- tibble(
+  start = c(-400, 0, 30, 90, 180, 210, 240, 270),
+  stop = c(0, 30, 90, 180, 210, 240, 270,
+           max(OF$time_from_start, na.rm = TRUE)),
+  timepoint = c(
+    "pre-smoking",
+    "0-30 min",
+    "31-90 min",
+    "91-180 min",
+    "181-210 min",
+    "211-240 min",
+    "241-270 min",
+    "271+ min"
+  )
+)
+
+assign_timepoint <- function(x, timepoints) {
+  if (!is.na(x)) {
+    timepoints$timepoint[x > timepoints$start & x <= timepoints$stop]
+  } else{
+    NA
+  }
+}
+```
+
+We created a new column, **`timepoint_use`**, in each table by mapping the **`time_from_start`** values to specific timepoints defined in separate reference data frames (**`timepoints_WB`**, **`timepoints_OF`**, **`timepoints_BR`**). Finally, releveled the **`timepoint_use`** factor variable to align with the order specified in the reference data frames. This ensures consistent and meaningful timepoint labels for subsequent analyses or visualizations in the study.
+
+```{r}
+Blood <- Blood |> 
+  mutate(
+    timepoint_use = map_chr(time_from_start,
+                            assign_timepoint,
+                            timepoints = timepoints_WB),
+    timepoint_use = fct_relevel(timepoint_use, timepoints_WB$timepoint)
+  )
+
+OF <- OF |> 
+  mutate(
+    timepoint_use = map_chr(time_from_start,
+                            assign_timepoint,
+                            timepoints = timepoints_OF),
+    timepoint_use = fct_relevel(timepoint_use, timepoints_OF$timepoint)
+  )
+
+Breath <- Breath |>
+  mutate(
+    timepoint_use = map_chr(time_from_start,
+                            assign_timepoint,
+                            timepoints = timepoints_BR),
+    timepoint_use = fct_relevel(timepoint_use, timepoints_BR$timepoint)
+  )
 ```
 
 ## Analysis
@@ -116,8 +263,6 @@ scatter_wb <- map(compounds_WB, ~ compound_scatterplot_group(
 
 ### Results
 
-
 ### Discussion
-
 
 ## Conclusion
