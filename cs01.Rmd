@@ -12,6 +12,7 @@ output:
 ```{r setup, include=FALSE}
 # control global Rmd chunk settings
 knitr::opts_chunk$set(echo = TRUE, warning=FALSE, message=FALSE)
+source("src/functions.R")
 ```
 
 ### Load packages
@@ -22,12 +23,12 @@ library(tidyverse)
 library(dplyr)
 library(ggplot2)
 library(janitor)
+library(purrr)
+library(rstatix)
 ```
 
 ## Question
-What's the best policy for determining impairment - which fluid, which chemical and at what cutoff?
-
--   Which compound, in which matrix, and at what cutoff is the best biomarker of recent use?
+-   Which compound, in which matrix, and at what cutoff is the best biomarker of recent use? (recent use is defined as 3h)
 -   Is the placebo associated with the release of chemical components within participants' bodies, leading them to perceive a sensation of being "high"?
 
 ## The Data
@@ -35,8 +36,8 @@ What's the best policy for determining impairment - which fluid, which chemical 
 ### Data Import
 
 ```{r}
-Blood = read.csv("data/Blood.csv")
-Breath = read_csv("data/Breath.csv")
+WB = read.csv("data/Blood.csv")
+BR = read_csv("data/Breath.csv")
 OF = read.csv("data/OF.csv")
 
 ```
@@ -44,6 +45,8 @@ OF = read.csv("data/OF.csv")
 ### Data Wrangling
 
 We recoded and releveled variables (`Treatment` and `Group`), cleans column names, and renames specific columns (`x11_oh_thc` to `thcoh`, `thc_v` to `thcv`, `thccooh_gluc` to `thc_cooh_gluc`, and `thccooh` to `thc_cooh`) in all 3 tables. Using `janitor` package to organized column names.
+
+**Suggestion: add a new column recording whether someone should be determined to have recent THC use (THC group, within 3 hr of smoking) or not(all placebo group, or THC group outside the 3hr window)
 
 ```{r}
 OF <- OF |>
@@ -59,7 +62,7 @@ OF <- OF |>
          thcv = thc_v)
 OF
 
-Blood <- Blood |> 
+WB <- WB |> 
   mutate(Treatment = fct_recode(Treatment, 
                                 "5.9% THC (low dose)" = "5.90%",
                                 "13.4% THC (high dose)" = "13.40%"),
@@ -69,9 +72,9 @@ Blood <- Blood |>
          thccooh = thc_cooh,
          thccooh_gluc = thc_cooh_gluc,
          thcv = thc_v)
-Blood
+WB
 
-Breath <- Breath |> 
+BR <- BR |> 
   mutate(Treatment = fct_recode(Treatment, 
                                 "5.9% THC (low dose)" = "5.90%",
                                 "13.4% THC (high dose)" = "13.40%"),
@@ -81,13 +84,13 @@ Breath <- Breath |>
                             "Frequent user" = "Experienced user" )) |> 
   janitor::clean_names() |> 
   rename(thc = thc_pg_pad)
-Breath
+BR
 ```
 
 Created 3 tables based on specific minutes and labeled accordingly, covering pre-smoking and subsequent post-smoking time periods for blood, breath, and oral fluid data.
 
 ```{r}
-timepoints_Blood <- tibble(
+timepoints_WB <- tibble(
   start = c(-400, 0, 30, 70, 100, 180, 210, 240, 270, 300),
   stop = c(
     0,
@@ -99,7 +102,7 @@ timepoints_Blood <- tibble(
     240,
     270,
     300,
-    max(Blood$time_from_start, na.rm = TRUE)
+    max(WB$time_from_start, na.rm = TRUE)
   ),
   timepoint = c(
     "pre-smoking",
@@ -115,7 +118,7 @@ timepoints_Blood <- tibble(
   )
 )
 
-timepoints_Breath <- tibble(
+timepoints_BR <- tibble(
   start = c(-400, 0, 40, 90, 180, 210, 240, 270),
   stop = c(
     0,
@@ -125,7 +128,7 @@ timepoints_Breath <- tibble(
     210,
     240,
     270,
-    max(Breath$time_from_start, na.rm = TRUE)
+    max(BR$time_from_start, na.rm = TRUE)
   ),
   timepoint = c(
     "pre-smoking",
@@ -167,88 +170,40 @@ assign_timepoint <- function(x, timepoints) {
 We created a new column, **`timepoint_use`**, in each table by mapping the **`time_from_start`** values to specific timepoints defined in separate reference data frames (**`timepoints_WB`**, **`timepoints_OF`**, **`timepoints_BR`**). Finally, releveled the **`timepoint_use`** factor variable to align with the order specified in the reference data frames. This ensures consistent and meaningful timepoint labels for subsequent analyses or visualizations in the study.
 
 ```{r}
-Blood <- Blood |> 
-  mutate(
-    timepoint_use = map_chr(time_from_start,
-                            assign_timepoint,
-                            timepoints = timepoints_WB),
-    timepoint_use = fct_relevel(timepoint_use, timepoints_WB$timepoint)
-  )
+ WB <- WB |> 
+  mutate(timepoint_use = map_chr(time_from_start, 
+                                 assign_timepoint, 
+                                 timepoints=timepoints_WB),
+         timepoint_use = fct_relevel(timepoint_use, timepoints_WB$timepoint))
 
 OF <- OF |> 
-  mutate(
-    timepoint_use = map_chr(time_from_start,
-                            assign_timepoint,
-                            timepoints = timepoints_OF),
-    timepoint_use = fct_relevel(timepoint_use, timepoints_OF$timepoint)
-  )
+  mutate(timepoint_use = map_chr(time_from_start, 
+                                 assign_timepoint, 
+                                 timepoints=timepoints_OF),
+         timepoint_use = fct_relevel(timepoint_use, timepoints_OF$timepoint))
 
-Breath <- Breath |>
-  mutate(
-    timepoint_use = map_chr(time_from_start,
-                            assign_timepoint,
-                            timepoints = timepoints_BR),
-    timepoint_use = fct_relevel(timepoint_use, timepoints_BR$timepoint)
-  )
+BR <- BR |> 
+  mutate(timepoint_use = map_chr(time_from_start, 
+                                 assign_timepoint, 
+                                 timepoints=timepoints_BR),
+         timepoint_use = fct_relevel(timepoint_use, timepoints_BR$timepoint))
+
+
 ```
-
-## Analysis
-
+remove duplicate id
 ```{r}
-
-Blood = Blood |>
-  filter(Treatment == "Placebo")
-
-compound_scatterplot_group <- function(dataset, compound, timepoints){
-  if(max(dataset[,compound],na.rm=TRUE)==0){
-    print(
-      dataset |> 
-        filter(!is.na(time_from_start)) |>
-        ggplot(aes_string(x="time_from_start", 
-                          y=compound,
-                          color="group")) + 
-        geom_point() +
-        geom_vline(data=timepoints, aes(xintercept=as.numeric(stop)), 
-                   linetype="dashed", 
-                   color="gray28") +
-        scale_color_manual(values=c("#19831C", "#A27FC9")) +
-        scale_y_continuous(limits=c(0,3)) +
-        theme_classic() +
-        theme(legend.position="bottom",
-              legend.title=element_blank()) +
-        labs(x='Time From Start (min)',
-             y=gsub('GLUC', 'gluc',gsub("_", "-", toupper(compound))))
-    )}else{
-      print(
-        dataset |> 
-          filter(!is.na(time_from_start)) |>
-          ggplot(aes_string(x="time_from_start", 
-                            y=compound,
-                            color="group")) + 
-          geom_point() +
-          geom_vline(data=timepoints, aes(xintercept=as.numeric(stop)), 
-                     linetype="dashed", 
-                     color="gray28")  +
-          scale_color_manual(values=c("#19831C", "#A27FC9")) +
-          theme_classic() +
-          theme(legend.position="bottom",
-                legend.title=element_blank()) +
-          labs(x='Time From Start (min)',
-               y=gsub('GLUC', 'gluc', gsub("_", "-", toupper(compound))))
-      )
-    }
-}
-
-
-scatter_wb <- map(compounds_WB, ~ compound_scatterplot_group( 
-    dataset=Blood, 
-    compound=.x, 
-    timepoints=Timepoint))
-
-
+WB <- drop_dups(WB)
+OF <- drop_dups(OF)
+BR <- drop_dups(BR)
 ```
 
 ### Exploratory Data Analysis
+```{r}
+
+
+```
+
+## Analysis
 
 ```{r}
 

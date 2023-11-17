@@ -1,0 +1,55 @@
+#input: data frame
+#return: data frame
+#remove all duplicate id
+drop_dups <- function(dataset){
+  out <- dataset |> 
+    filter(!is.na(timepoint_use)) |> 
+    group_by(timepoint_use) |> 
+    distinct(id, .keep_all = TRUE) |> 
+    ungroup()
+  return(out)
+} 
+
+
+#im still trying to get this to work...
+#  --rainer
+compound_scatterplot_group <- function(dataset, compound, timepoints){
+  if(max(dataset[,compound],na.rm=TRUE)==0){
+    print(
+      dataset |> 
+        filter(!is.na(time_from_start)) |>
+        ggplot(aes_string(x="time_from_start", 
+                          y=compound,
+                          color="group")) + 
+        geom_point() +
+        geom_vline(data=timepoints, aes(xintercept=as.numeric(stop)), 
+                   linetype="dashed", 
+                   color="gray28") +
+        scale_color_manual(values=c("#19831C", "#A27FC9")) +
+        scale_y_continuous(limits=c(0,3)) +
+        theme_classic() +
+        theme(legend.position="bottom",
+              legend.title=element_blank()) +
+        labs(x='Time From Start (min)',
+             y=gsub('GLUC', 'gluc',gsub("_", "-", toupper(compound))))
+    )}else{
+      print(
+        dataset |> 
+          filter(!is.na(time_from_start)) |>
+          ggplot(aes_string(x="time_from_start", 
+                            y=compound,
+                            color="group")) + 
+          geom_point() +
+          geom_vline(data=timepoints, aes(xintercept=as.numeric(stop)), 
+                     linetype="dashed", 
+                     color="gray28")  +
+          scale_color_manual(values=c("#19831C", "#A27FC9")) +
+          theme_classic() +
+          theme(legend.position="bottom",
+                legend.title=element_blank()) +
+          labs(x='Time From Start (min)',
+               y=gsub('GLUC', 'gluc', gsub("_", "-", toupper(compound))))
+      )
+    }
+}
+  
