@@ -10,14 +10,18 @@ output:
 ## Introduction
 
 ```{r setup, include=FALSE}
+
 # control global Rmd chunk settings
 knitr::opts_chunk$set(echo = TRUE, warning=FALSE, message=FALSE)
+
 source("src/functions.R")
+
 ```
 
 ### Load packages
 
 ```{r load-packages, message=FALSE}
+
 library(tidymodels)
 library(tidyverse)
 library(dplyr)
@@ -25,6 +29,7 @@ library(ggplot2)
 library(janitor)
 library(purrr)
 library(rstatix)
+
 ```
 
 ## Question
@@ -35,7 +40,8 @@ library(rstatix)
 
 ### Data Import
 
-```{r}
+```{r importing-data}
+
 WB = read.csv("data/Blood.csv")
 BR = read.csv("data/Breath.csv")
 OF = read.csv("data/OF.csv")
@@ -44,11 +50,12 @@ OF = read.csv("data/OF.csv")
 
 ### Data Wrangling
 
-We recoded and releveled variables (`Treatment` and `Group`), cleans column names, and renames specific columns (`x11_oh_thc` to `thcoh`, `thc_v` to `thcv`, `thccooh_gluc` to `thc_cooh_gluc`, and `thccooh` to `thc_cooh`) in all 3 tables. Using `janitor` package to organized column names.
+We re-coded and re-leveled variables (`Treatment` and `Group`), cleans column names, and renames specific columns (`x11_oh_thc` to `thcoh`, `thc_v` to `thcv`, `thccooh_gluc` to `thc_cooh_gluc`, and `thccooh` to `thc_cooh`) in all 3 tables. Using `janitor` package to organized column names.
 
 **Suggestion: add a new column recording whether someone should be determined to have recent THC use (THC group, within 3 hr of smoking) or not(all placebo group, or THC group outside the 3hr window)
 
-```{r}
+```{r re-leveling-data}
+
 OF <- OF |>
   mutate(Treatment = fct_recode(Treatment, 
                                 "5.9% THC (low dose)" = "5.90%",
@@ -82,11 +89,17 @@ BR <- BR |>
                             "Frequent user" = "Experienced user" )) |> 
   janitor::clean_names() |> 
   rename(thc = thc_pg_pad)
+<<<<<<< HEAD
+=======
+BR
+
+>>>>>>> 38f9a7a3e4addc30f1a43f2f59999399ecf53ed9
 ```
 
 Created 3 tables based on specific minutes and labeled accordingly, covering pre-smoking and subsequent post-smoking time periods for blood, breath, and oral fluid data.
 
-```{r}
+```{r table-creation}
+
 timepoints_WB <- tibble(
   start = c(-400, 0, 30, 70, 100, 180, 210, 240, 270, 300),
   stop = c(
@@ -167,6 +180,7 @@ assign_timepoint <- function(x, timepoints) {
 We created a new column, **`timepoint_use`**, in each table by mapping the **`time_from_start`** values to specific timepoints defined in separate reference data frames (**`timepoints_WB`**, **`timepoints_OF`**, **`timepoints_BR`**). Finally, releveled the **`timepoint_use`** factor variable to align with the order specified in the reference data frames. This ensures consistent and meaningful timepoint labels for subsequent analyses or visualizations in the study.
 
 ```{r}
+
  WB <- WB |> 
   mutate(timepoint_use = map_chr(time_from_start, 
                                  assign_timepoint, 
@@ -185,13 +199,16 @@ BR <- BR |>
                                  timepoints=timepoints_BR),
          timepoint_use = fct_relevel(timepoint_use, timepoints_BR$timepoint))
 
-
 ```
+
 remove duplicate id
+
 ```{r}
+
 WB <- drop_dups(WB)
 OF <- drop_dups(OF)
 BR <- drop_dups(BR)
+
 ```
 
 ### Exploratory Data Analysis
