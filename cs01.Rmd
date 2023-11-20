@@ -37,7 +37,7 @@ library(rstatix)
 
 ```{r}
 WB = read.csv("data/Blood.csv")
-BR = read_csv("data/Breath.csv")
+BR = read.csv("data/Breath.csv")
 OF = read.csv("data/OF.csv")
 
 ```
@@ -60,7 +60,6 @@ OF <- OF |>
   janitor::clean_names() |>
   rename(thcoh = x11_oh_thc,
          thcv = thc_v)
-OF
 
 WB <- WB |> 
   mutate(Treatment = fct_recode(Treatment, 
@@ -72,7 +71,6 @@ WB <- WB |>
          thccooh = thc_cooh,
          thccooh_gluc = thc_cooh_gluc,
          thcv = thc_v)
-WB
 
 BR <- BR |> 
   mutate(Treatment = fct_recode(Treatment, 
@@ -84,7 +82,6 @@ BR <- BR |>
                             "Frequent user" = "Experienced user" )) |> 
   janitor::clean_names() |> 
   rename(thc = thc_pg_pad)
-BR
 ```
 
 Created 3 tables based on specific minutes and labeled accordingly, covering pre-smoking and subsequent post-smoking time periods for blood, breath, and oral fluid data.
@@ -201,6 +198,67 @@ BR <- drop_dups(BR)
 ```{r}
 
 
+```
+## extended question  
+### wrangling  
+```{r}
+
+
+WB_pivot = WB |>
+  pivot_longer(6:13, names_to = "compound")
+
+
+OF_pivot = OF |>
+  pivot_longer(6:12, names_to = "compound")
+  
+```
+
+### Part 1: so uh the "placebo groups might have different compound measurements" hypothesis has been disproven :(
+
+This one is me testing out an extended question our group proposed: does taking a placebo have an effect on any of the compound? 
+
+Theoretically, no, it shouldn't. But the graph about subjective highness being basically random really peaked my interest and I thought there might be something worth looking into. But the data disproves that theory :(
+
+```{r}
+WB_pivot|>
+  filter(treatment == "Placebo") |>
+  filter(timepoint_use == "pre-smoking" | timepoint_use == "0-30 min") |>
+  ggplot(mapping = aes(x = log(value))) +
+    geom_histogram(binwidth = 0.5) +
+    facet_grid(vars(timepoint_use), vars(compound), scales = "free")
+
+
+```
+###part 2: BUT i have a different extended questgion we can look into
+
+This one is SUPER interesting. Some of the pairplots we went over in lecture notes 12 looked like they has two separate lines, so I thought one of the variables might change how compounds correlate with each other - and they do! Namely, the low dose and high dose group seems to have different slopes when it comes to the correlation between certain compounds. 
+
+Here's a few of the more obvious ones:
+```{r}
+ggplot(data = WB, 
+       aes(y = cbg, x = thc, color = treatment)) +
+  geom_point(alpha = 0.5) +
+  facet_wrap(~group) 
+
+ggplot(data = OF, 
+       aes(y = thc, x = cbg, color = treatment)) +
+  geom_point(alpha = 0.5) +
+  facet_wrap(~group) 
+
+ggplot(data = OF, 
+       aes(y = cbn, x = cbg, color = treatment)) +
+  geom_point(alpha = 0.5) +
+  facet_wrap(~group) 
+
+ggplot(data = OF, 
+       aes(y = cbg, x = thcv, color = treatment)) +
+  geom_point(alpha = 0.5) +
+  facet_wrap(~group) 
+
+
+```
+
+this seems to show that even though low dose/high dose doesn't effect chemical concentration overall (as shown in the plots in lecture notes), they do change the correlation between chemicals. Maybe a potention extended question would be "do some compound repsond more to high dose/low dose compared to the other?"
 ```
 
 ## Analysis
