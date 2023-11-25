@@ -1,5 +1,3 @@
-#input: data frame
-#return: data frame
 #remove all duplicate id
 drop_dups <- function(dataset){
   out <- dataset |> 
@@ -14,10 +12,10 @@ drop_dups <- function(dataset){
 
 #plot value of compound across time
 #signature:
-#map(compounds_WB/compounds_BR/compounds_OF, ~ compound_scatterplot_group( 
-#dataset=BR/OF/BR, 
-#compound=.x, 
-#timepoints=timepoints_WB/timepoints_BR/timepoints_OF))
+  #map(compounds_WB/compounds_BR/compounds_OF, ~ compound_scatterplot_group( 
+  #dataset=BR/OF/BR, 
+  #compound=.x, 
+  #timepoints=timepoints_WB/timepoints_BR/timepoints_OF))
 compound_scatterplot_group <- function(dataset, compound, timepoints){
   if(max(dataset[,compound],na.rm=TRUE)==0){
     print(
@@ -57,5 +55,7 @@ compound_scatterplot_group <- function(dataset, compound, timepoints){
       )
     }
 }
+
+
 
 

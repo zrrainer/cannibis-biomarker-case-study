@@ -1,4 +1,4 @@
-# helper function to clean up name of two compounds
+#helper function: clean up name of two compounds
 clean_gluc <- function(df){
   df <- df |> 
     mutate(compound=gsub('GLUC', 'gluc',gsub("_","-",toupper(compound))),
@@ -8,7 +8,7 @@ clean_gluc <- function(df){
 
 
 
-#calculate sensitivity & specificity
+#helper function: calculate sensitivity & specificity
 make_calculations <- function(dataset, dataset_removedups, split, compound, 
                               start = start, stop = stop, tpt_use = tpt_use){
   ## remove NAs
@@ -81,14 +81,14 @@ make_calculations <- function(dataset, dataset_removedups, split, compound,
 }
 
 
-#calculate sensityvity & specificity based on specific cutoffs
+#helper function: apply make_calculations() based on specific cutoffs
 sens_spec <- function(dataset, compound, start, stop, tpt_use, 
                       lowest_value = 0.5, splits = NULL, ...){
   # if it's not all NAs...
   if(sum(is.na(dataset[,compound])) != nrow(dataset)){
     # specify what splits should be used for calculations
     if(is.null(splits)){
-      limits <- dataset[is.finite(rowSums(dataset[,compound])),compound]
+      limits <- dataset[is.finite(rowSums(dataset[,compound])),compound] #sums up values in the specified compound col, unless its infinite
       ## define lower and upper limits
       lower = min(limits, na.rm=TRUE)
       upper = max(limits, na.rm=TRUE)
@@ -98,6 +98,7 @@ sens_spec <- function(dataset, compound, start, stop, tpt_use,
       if(length(tosplit)>=1){
         splits = c(lowest_value, quantile(tosplit, probs=seq(0, 1, by = 0.01), na.rm=TRUE))
         splits = unique(splits)
+      #splits: a vector containing lowest_value, and values of 100 percentiles
       }else{
         splits = 0
       }
@@ -127,7 +128,27 @@ sens_spec <- function(dataset, compound, start, stop, tpt_use,
   return(output)
 }
 
-#uhhhhhhh
+#passes parameters into sens_spec() and return a data frame
+#params:
+  #dataset:WB/OF/BR
+  #cpd: string specifying compound
+  #timepoints: timepoints data frame
+  #splits: list of cutoffs
+#returns data frame with columns:
+  #detection_limit = cutoff,
+  #compound = compound,
+  #time_start = start of timepoint,
+  #time_stop = end of timepoint,
+  ##time_window = timepoint,
+  #NAs = nrow(dataset) - nrow(df),
+  #N = nrow(dataset_removedups),  
+  #N_removed = nrow(dataset) - nrow(dataset_removedups),
+  #Sensitivity = (TP/(TP + FN)), 
+  #Specificity = (TN /(TN + FP)),
+  #PPV = (TP/(TP+FP)),
+  #NPV = (TN/(TN + FN)),
+  #Efficiency = ((TP + TN)/(TP + TN + FP + FN))*100
+
 sens_spec_cpd <- function(dataset, cpd, timepoints, splits = NULL){
   args2 <- list(start = timepoints$start, 
                 stop = timepoints$stop, 
@@ -136,3 +157,4 @@ sens_spec_cpd <- function(dataset, cpd, timepoints, splits = NULL){
     pmap_dfr(sens_spec, dataset, compound = cpd, splits = splits)
   return(out)
 }
+

@@ -16,6 +16,8 @@ knitr::opts_chunk$set(echo = TRUE, warning=FALSE, message=FALSE)
 
 source("src/functions.R")
 source("src/sen&spe.R")
+source("src/ROC.R")
+source("src/cutoff.R")
 
 ```
 
@@ -30,12 +32,13 @@ library(ggplot2)
 library(janitor)
 library(purrr)
 library(rstatix)
+library(cowplot)
 
 ```
 
 ## Question
 -   Which compound, in which matrix, and at what cutoff is the best biomarker of recent use? (recent use is defined as 3h)
--   Is the placebo associated with the release of chemical components within participants' bodies, leading them to perceive a sensation of being "high"?
+-   "do some compound repsond more to high dose/low dose compared to the other?"
 
 ## The Data
 
@@ -215,19 +218,20 @@ BR <- drop_dups(BR)
 ```
 
 ### Exploratory Data Analysis
-compounds measurements over time
+## compounds measurements over time
+note: do we care about occasional/frequent user? might be more informative if coloured by placebo/non placedo
 ```{r, cache = TRUE}
-scatter_wb <- map(compounds_WB, ~ compound_scatterplot_group( 
-    dataset=WB, 
+scatter_wb <- map(compounds_BR, ~ compound_scatterplot_group( 
+    dataset=BR, 
     compound=.x, 
-    timepoints=timepoints_WB))
+    timepoints=timepoints_BR))
 ```
 
 calculating sensitivity and specificity
-#```{r, cache=TRUE}
+```{r, cache=TRUE}
 output_WB <- map_dfr(compounds_WB, 
                      ~sens_spec_cpd(dataset = WB, cpd = all_of(.x), 
-                                    timepoints = timepoints_WB)) %>% clean_gluc()
+                                    timepoints = timepoints_WB)) |> clean_gluc()
 
 output_BR <- map_dfr(compounds_BR, 
                      ~sens_spec_cpd(dataset = BR,  cpd = all_of(.x),
@@ -236,7 +240,61 @@ output_BR <- map_dfr(compounds_BR,
 output_OF <- map_dfr(compounds_OF, 
                      ~sens_spec_cpd(dataset = OF, cpd = all_of(.x),
                                     timepoints = timepoints_OF))  %>% clean_gluc()
-#```
+```
+## cutoff vs. sensitivity/specificity
+Here we plot the value of the cutoff against sensitivity and specificity for every compound in every matrix, and arrange them all into one big plot
+```{r, cache=TRUE}
+#plot detection limit(cutoff) vs. sensitivity and specificity
+ss_WB <- ss_plot(output_WB, tpts = length(unique(output_WB$time_start)), tissue = "Blood")
+ss_OF <- ss_plot(output_OF, tpts = length(unique(output_OF$time_start)), tissue = "Oral Fluid")
+ss_BR <- ss_plot(output_BR, tpts = length(unique(output_BR$time_start)), tissue = "Breath")
+
+
+#arranges ss plots into one
+ss_bottom_row <- plot_grid(ss_OF, ss_BR, labels = c('B', 'C'), label_size = 12, ncol = 2, rel_widths = c(0.66, .33))
+plot_grid(ss_WB, ss_bottom_row, labels = c('A', ''), label_size = 12, ncol = 1)
+
+```
+## sensitivity vs. specificity
+Here we plot sensitivity vs. specificity for every compound in every matrix, and arrange them all into one big plot
+```{r}
+#plot sensitivity vs. specificity
+roc_WB = roc_plot(output_WB, tpts = length(unique(output_WB$time_start)), tissue = "Blood")
+roc_OF = roc_plot(output_WB, tpts = length(unique(output_WB$time_start)), tissue = "Oral Fluid")
+roc_BR = roc_plot(output_WB, tpts = length(unique(output_WB$time_start)), tissue = "Breath")
+
+#arrange roc plots
+roc_bottom_row <- plot_grid(roc_OF, roc_BR, labels = c('B', 'C'), label_size = 12, ncol = 2, rel_widths = c(0.66, .33))
+plot_grid(roc_WB, roc_bottom_row, labels = c('A', ''), label_size = 12, ncol = 1)
+```
+
+## plot sensitivity and speciticity over time given specific cutoffs
+```{r}
+#pass specific cutoff into splits parameter
+WB_THC <- sens_spec_cpd(dataset = WB, cpd = 'thc',
+                        timepoints = timepoints_WB,
+                        splits =  c(0.5, 1, 2, 5, 10)) %>% clean_gluc()
+
+WB_THC
+```
+```{r}
+blood_levels <- c("pre-smoking\nN=189", "0-30\nmin\nN=187", "31-70\nmin\nN=165",
+                  "71-100\nmin\nN=157", "101-180\nmin\nN=168", "181-210\nmin\nN=103",
+                  "211-240\nmin\nN=127", "241-270\nmin\nN=137", "271-300\nmin\nN=120",
+                  "301+\nmin\nN=88")
+of_levels <- c("pre-smoking\nN=192", "0-30\nmin\nN=192", "31-90\nmin\nN=117",
+               "91-180\nmin\nN=99", "181-210\nmin\nN=102", "211-240\nmin\nN=83",
+               "241-270\nmin\nN=90",  "271+\nmin\nN=76")
+
+
+plot_cutoffs(dataset=WB_THC, 
+             timepoint_use_variable=WB$timepoint_use, 
+             tissue="Blood", 
+             cpd="THC", 
+             x_labels=blood_levels)
+
+```
+
 
 ## extended question  
 ### wrangling  
