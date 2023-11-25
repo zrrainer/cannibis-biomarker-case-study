@@ -15,6 +15,7 @@ output:
 knitr::opts_chunk$set(echo = TRUE, warning=FALSE, message=FALSE)
 
 source("src/functions.R")
+source("src/sen&spe.R")
 
 ```
 
@@ -46,6 +47,7 @@ WB = read.csv("data/Blood.csv")
 BR = read.csv("data/Breath.csv")
 OF = read.csv("data/OF.csv")
 
+
 ```
 
 ### Data Wrangling
@@ -74,7 +76,8 @@ WB <- WB |>
                                 "13.4% THC (high dose)" = "13.40%"),
          Treatment = fct_relevel(Treatment, "Placebo", "5.9% THC (low dose)")) |> 
   janitor::clean_names() |>
-  rename(thcoh = x11_oh_thc,
+  rename(fluid = fluid_type,
+         thcoh = x11_oh_thc,
          thccooh = thc_cooh,
          thccooh_gluc = thc_cooh_gluc,
          thcv = thc_v)
@@ -89,11 +92,11 @@ BR <- BR |>
                             "Frequent user" = "Experienced user" )) |> 
   janitor::clean_names() |> 
   rename(thc = thc_pg_pad)
-<<<<<<< HEAD
-=======
-BR
 
->>>>>>> 38f9a7a3e4addc30f1a43f2f59999399ecf53ed9
+
+compounds_WB <-  as.list(colnames(Filter(function(x) !all(is.na(x)), WB[6:13])))
+compounds_BR <-  as.list(colnames(Filter(function(x) !all(is.na(x)), BR[6])))
+compounds_OF <-  as.list(colnames(Filter(function(x) !all(is.na(x)), OF[6:12])))
 ```
 
 Created 3 tables based on specific minutes and labeled accordingly, covering pre-smoking and subsequent post-smoking time periods for blood, breath, and oral fluid data.
@@ -212,22 +215,41 @@ BR <- drop_dups(BR)
 ```
 
 ### Exploratory Data Analysis
-```{r}
-
-
+compounds measurements over time
+```{r, cache = TRUE}
+scatter_wb <- map(compounds_WB, ~ compound_scatterplot_group( 
+    dataset=WB, 
+    compound=.x, 
+    timepoints=timepoints_WB))
 ```
+
+calculating sensitivity and specificity
+#```{r, cache=TRUE}
+output_WB <- map_dfr(compounds_WB, 
+                     ~sens_spec_cpd(dataset = WB, cpd = all_of(.x), 
+                                    timepoints = timepoints_WB)) %>% clean_gluc()
+
+output_BR <- map_dfr(compounds_BR, 
+                     ~sens_spec_cpd(dataset = BR,  cpd = all_of(.x),
+                                    timepoints = timepoints_BR))  %>% clean_gluc()
+
+output_OF <- map_dfr(compounds_OF, 
+                     ~sens_spec_cpd(dataset = OF, cpd = all_of(.x),
+                                    timepoints = timepoints_OF))  %>% clean_gluc()
+#```
+
 ## extended question  
 ### wrangling  
 ```{r}
-
-
-WB_pivot = WB |>
+WB_long = WB |>
   pivot_longer(6:13, names_to = "compound")
 
-
-OF_pivot = OF |>
+OF_long = OF |>
   pivot_longer(6:12, names_to = "compound")
   
+BR_long <- BR |> pivot_longer(6)
+
+df_full <- bind_rows(WB_long, OF_long, BR_long)
 ```
 
 ### Part 1: so uh the "placebo groups might have different compound measurements" hypothesis has been disproven :(
@@ -237,7 +259,7 @@ This one is me testing out an extended question our group proposed: does taking 
 Theoretically, no, it shouldn't. But the graph about subjective highness being basically random really peaked my interest and I thought there might be something worth looking into. But the data disproves that theory :(
 
 ```{r}
-WB_pivot|>
+WB_long|>
   filter(treatment == "Placebo") |>
   filter(timepoint_use == "pre-smoking" | timepoint_use == "0-30 min") |>
   ggplot(mapping = aes(x = log(value))) +
