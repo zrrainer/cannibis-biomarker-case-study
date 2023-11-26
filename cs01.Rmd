@@ -218,10 +218,38 @@ BR <- drop_dups(BR)
 ```
 
 ### Exploratory Data Analysis
-## compounds measurements over time
-note: do we care about occasional/frequent user? might be more informative if coloured by placebo/non placedo
+## compounds measurements over time by treatment
+heres all compounds plotted against time, coloured by group
+```{r}
+scatter_WB <- map(compounds_WB, ~ compound_scatterplot_group_by_treatment( 
+    dataset=WB, 
+    compound=.x, 
+    timepoints=timepoints_WB))
+
+scatter_OF <- map(compounds_OF, ~ compound_scatterplot_group_by_treatment( 
+    dataset=OF, 
+    compound=.x, 
+    timepoints=timepoints_OF))
+
+scatter_BR <- map(compounds_BR, ~ compound_scatterplot_group_by_treatment( 
+    dataset=BR, 
+    compound=.x, 
+    timepoints=timepoints_BR))
+```
+
+heres all compounds plotted against time, coloured by treatment, log transformed
 ```{r, cache = TRUE}
-scatter_wb <- map(compounds_BR, ~ compound_scatterplot_group( 
+scatter_WB_by_treatment <- map(compounds_WB, ~ compound_scatterplot_group_by_treatment_log( 
+    dataset=WB, 
+    compound=.x, 
+    timepoints=timepoints_WB))
+
+scatter_OF_by_treatment <- map(compounds_OF, ~ compound_scatterplot_group_by_treatment_log( 
+    dataset=OF, 
+    compound=.x, 
+    timepoints=timepoints_OF))
+
+scatter_BR_by_treatment <- map(compounds_BR, ~ compound_scatterplot_group_by_treatment_log( 
     dataset=BR, 
     compound=.x, 
     timepoints=timepoints_BR))
