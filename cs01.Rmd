@@ -54,6 +54,7 @@ library(cowplot)
 ```
 
 ## Question
+
 -   Which compound, in which matrix, and at what cutoff is the best biomarker of recent use? (recent use is defined as 3h)
 -   "do some compound respond more to high dose/low dose compared to the other?"
 
@@ -66,7 +67,6 @@ library(cowplot)
 WB = read.csv("data/Blood.csv")
 BR = read.csv("data/Breath.csv")
 OF = read.csv("data/OF.csv")
-
 
 ```
 
@@ -235,8 +235,13 @@ BR <- drop_dups(BR)
 ```
 
 ### Exploratory Data Analysis
-## compounds measurements over time by treatment
-heres all compounds plotted against time, coloured by group
+
+#### compounds measurements over time by treatment
+
+The following plots include of all compounds against time, distinguished by color according to their respective groups. To achieve a comprehensive understanding, we generated scatterplots for compounds across three distinct matrices—namely, whole blood, oral fluid, and breath. This analysis encompasses various timepoints and considers different treatments, namely, placebo, low dose, and high dose.
+
+Upon close examination of the scatterplots, a noteworthy observation emerges, particularly concerning the **THC** biomarker in whole blood. This specific biomarker appears to offer a potentially enhanced indication of recent cannabis joint usage. The scatterplot reveals a discernible separation between the **placebo** and **THC** treatment groups, suggesting that the **THC** measurement in whole blood may serve as a more reliable indicator of recent cannabis joint consumption.
+
 ```{r}
 scatter_WB <- map(compounds_WB, ~ compound_scatterplot_group_by_treatment( 
     dataset=WB, 
@@ -254,7 +259,10 @@ scatter_BR <- map(compounds_BR, ~ compound_scatterplot_group_by_treatment(
     timepoints=timepoints_BR))
 ```
 
-heres all compounds plotted against time, coloured by treatment, log transformed
+In the presented set of scatterplots, all compounds are graphically depicted against time, with color distinctions denoting different treatment conditions and a log transformation applied to the y-axis, which represents the respective compound measurements. A comparative analysis with the previous scatterplots reveals a modification: specifically, a log transformation has been applied to the y-axis, providing an alternative perspective on the measurement of the compounds.
+
+Upon closer examination, a notable observation emerges. The measurement of **THC** from breath exhibits a more discernible separation between the **placebo** and **THC** treatment groups in the log-transformed scatterplots. This suggests that the log transformation on the y-axis enhances the visibility of distinctions between the treatment conditions for **THC**. The log transformation, by compressing the scale, may unveil nuances and patterns that are not as apparent on a linear scale. This nuanced insight into **THC** measurements underscores the importance of considering the impact of transformation techniques when analyzing compound data over time in the context of different treatments. The enhanced separation observed in the log-transformed scatterplots could potentially provide valuable insights into the effects of treatments on **THC** levels and underscores the sensitivity of the chosen visualization approach.
+
 ```{r, cache = TRUE}
 scatter_WB_by_treatment <- map(compounds_WB, ~ compound_scatterplot_group_by_treatment_log( 
     dataset=WB, 
@@ -272,53 +280,104 @@ scatter_BR_by_treatment <- map(compounds_BR, ~ compound_scatterplot_group_by_tre
     timepoints=timepoints_BR))
 ```
 
-calculating sensitivity and specificity
+Calculating sensitivity and specificity.
+
 ```{r, cache=TRUE}
-output_WB <- map_dfr(compounds_WB, 
-                     ~sens_spec_cpd(dataset = WB, cpd = all_of(.x), 
-                                    timepoints = timepoints_WB)) |> clean_gluc()
+output_WB <- map_dfr(compounds_WB,
+                     ~ sens_spec_cpd(
+                       dataset = WB,
+                       cpd = all_of(.x),
+                       timepoints =  timepoints_WB
+                     )) |> clean_gluc()
 
-output_BR <- map_dfr(compounds_BR, 
-                     ~sens_spec_cpd(dataset = BR,  cpd = all_of(.x),
-                                    timepoints = timepoints_BR))  %>% clean_gluc()
+output_BR <- map_dfr(compounds_BR,
+                     ~ sens_spec_cpd(
+                       dataset = BR,
+                       cpd = all_of(.x),
+                       timepoints = timepoints_BR
+                     ))  |> clean_gluc()
 
-output_OF <- map_dfr(compounds_OF, 
-                     ~sens_spec_cpd(dataset = OF, cpd = all_of(.x),
-                                    timepoints = timepoints_OF))  %>% clean_gluc()
+output_OF <- map_dfr(compounds_OF,
+                     ~ sens_spec_cpd(
+                       dataset = OF,
+                       cpd = all_of(.x),
+                       timepoints = timepoints_OF
+                     ))  |> clean_gluc()
 ```
-## cutoff vs. sensitivity/specificity
-Here we plot the value of the cutoff against sensitivity and specificity for every compound in every matrix, and arrange them all into one big plot
+
+#### cutoff vs. sensitivity/specificity
+
+Here we plot the value of the cutoff against sensitivity and specificity for every compound in every matrix, and arrange them all into one big plot. This ROC curve of sensitivity and specificity against cutoff values suggests an exploration of optimal cutoff points, which is crucial for answering question 1.
+
 ```{r, cache=TRUE}
 #plot detection limit(cutoff) vs. sensitivity and specificity
-ss_WB <- ss_plot(output_WB, tpts = length(unique(output_WB$time_start)), tissue = "Blood")
-ss_OF <- ss_plot(output_OF, tpts = length(unique(output_OF$time_start)), tissue = "Oral Fluid")
-ss_BR <- ss_plot(output_BR, tpts = length(unique(output_BR$time_start)), tissue = "Breath")
+ss_WB <-
+  ss_plot(output_WB, tpts = length(unique(output_WB$time_start)), tissue = "Blood")
+ss_OF <-
+  ss_plot(output_OF, tpts = length(unique(output_OF$time_start)), tissue = "Oral Fluid")
+ss_BR <-
+  ss_plot(output_BR, tpts = length(unique(output_BR$time_start)), tissue = "Breath")
 
 
 #arranges ss plots into one
-ss_bottom_row <- plot_grid(ss_OF, ss_BR, labels = c('B', 'C'), label_size = 12, ncol = 2, rel_widths = c(0.66, .33))
-plot_grid(ss_WB, ss_bottom_row, labels = c('A', ''), label_size = 12, ncol = 1)
+ss_bottom_row <-
+  plot_grid(
+    ss_OF,
+    ss_BR,
+    labels = c('B', 'C'),
+    label_size = 12,
+    ncol = 2,
+    rel_widths = c(0.66, .33)
+  )
+plot_grid(
+  ss_WB,
+  ss_bottom_row,
+  labels = c('A', ''),
+  label_size = 12,
+  ncol = 1
+)
 
 ```
+
 ## sensitivity vs. specificity
+
 Here we plot sensitivity vs. specificity for every compound in every matrix, and arrange them all into one big plot
-```{r}
+
+```{r fig.height=7, fig.width=15}
 #plot sensitivity vs. specificity
 roc_WB = roc_plot(output_WB, tpts = length(unique(output_WB$time_start)), tissue = "Blood")
 roc_OF = roc_plot(output_WB, tpts = length(unique(output_WB$time_start)), tissue = "Oral Fluid")
 roc_BR = roc_plot(output_WB, tpts = length(unique(output_WB$time_start)), tissue = "Breath")
 
 #arrange roc plots
-roc_bottom_row <- plot_grid(roc_OF, roc_BR, labels = c('B', 'C'), label_size = 12, ncol = 2, rel_widths = c(0.66, .33))
-plot_grid(roc_WB, roc_bottom_row, labels = c('A', ''), label_size = 12, ncol = 1)
+roc_bottom_row <-
+  plot_grid(
+    roc_OF,
+    roc_BR,
+    labels = c('B', 'C'),
+    label_size = 12,
+    ncol = 2,
+    rel_widths = c(0.66, .33)
+  )
+plot_grid(
+  roc_WB,
+  roc_bottom_row,
+  labels = c('A', ''),
+  label_size = 12,
+  ncol = 1
+)
 ```
 
 ## plot sensitivity and speciticity over time given specific cutoffs
+
 ```{r}
 #pass specific cutoff into splits parameter
-WB_THC <- sens_spec_cpd(dataset = WB, cpd = 'thc',
-                        timepoints = timepoints_WB,
-                        splits =  c(0.5, 1, 2, 5, 10)) %>% clean_gluc()
+WB_THC <- sens_spec_cpd(
+  dataset = WB,
+  cpd = 'thc',
+  timepoints = timepoints_WB,
+  splits =  c(0.5, 1, 2, 5, 10)
+) |> clean_gluc()
 
 WB_THC
 ```
@@ -340,9 +399,10 @@ plot_cutoffs(dataset=WB_THC,
 
 ```
 
-
 ## extended question  
+
 ### wrangling  
+
 ```{r}
 WB_long = WB |>
   pivot_longer(6:13, names_to = "compound")
@@ -362,42 +422,102 @@ This one is me testing out an extended question our group proposed: does taking 
 Theoretically, no, it shouldn't. But the graph about subjective highness being basically random really peaked my interest and I thought there might be something worth looking into. But the data disproves that theory :(
 
 ```{r}
-WB_long|>
+WB_long |>
   filter(treatment == "Placebo") |>
-  filter(timepoint_use == "pre-smoking" | timepoint_use == "0-30 min") |>
+  filter(timepoint_use == "pre-smoking" |
+           timepoint_use == "0-30 min") |>
   ggplot(mapping = aes(x = log(value))) +
-    geom_histogram(binwidth = 0.5) +
-    facet_grid(vars(timepoint_use), vars(compound), scales = "free")
-
-
+  geom_histogram(binwidth = 0.5) +
+  facet_grid(vars(timepoint_use), vars(compound), scales = "free")
 ```
+
 ###part 2: BUT i have a different extended questgion we can look into
 
 This one is SUPER interesting. Some of the pairplots we went over in lecture notes 12 looked like they has two separate lines, so I thought one of the variables might change how compounds correlate with each other - and they do! Namely, the low dose and high dose group seems to have different slopes when it comes to the correlation between certain compounds. 
 
 Here's a few of the more obvious ones:
-```{r}
-ggplot(data = WB, 
+
+```{r fig.width=9}
+ggplot(data = WB,
        aes(y = cbg, x = thc, color = treatment)) +
   geom_point(alpha = 0.5) +
-  facet_wrap(~group) 
+  geom_smooth(
+    method = "lm",
+    # Use linear regression
+    formula = y ~ x,
+    # Specify the formula for the linear model
+    se = FALSE,
+    # Don't show the confidence interval
+    data = WB |> filter(treatment == "5.9% THC (low dose)"),
+    # Filter for low dose
+    color = "green"
+  ) +
+  geom_smooth(
+    method = "lm",
+    formula = y ~ x,
+    se = FALSE,
+    data = WB |> filter(treatment == "13.4% THC (high dose)"),
+    # Filter for high dose
+    color = "blue"
+  ) +
+  facet_wrap(~ group, scales = "free")
 
-ggplot(data = OF, 
+ggplot(data = OF,
        aes(y = thc, x = cbg, color = treatment)) +
   geom_point(alpha = 0.5) +
-  facet_wrap(~group) 
+  geom_smooth(
+    method = "lm",
+    formula = y ~ x,
+    se = FALSE,
+    data = OF |> filter(treatment == "5.9% THC (low dose)"),
+    color = "green"
+  ) +
+  geom_smooth(
+    method = "lm",
+    formula = y ~ x,
+    se = FALSE,
+    data = OF |> filter(treatment == "13.4% THC (high dose)"),
+    color = "blue"
+  ) +
+  facet_wrap( ~ group, scales = "free")
 
-ggplot(data = OF, 
+ggplot(data = OF,
        aes(y = cbn, x = cbg, color = treatment)) +
   geom_point(alpha = 0.5) +
-  facet_wrap(~group) 
+  geom_smooth(
+    method = "lm",
+    formula = y ~ x,
+    se = FALSE,
+    data = OF |> filter(treatment == "5.9% THC (low dose)"),
+    color = "green"
+  ) +
+  geom_smooth(
+    method = "lm",
+    formula = y ~ x,
+    se = FALSE,
+    data = OF |> filter(treatment == "13.4% THC (high dose)"),
+    color = "blue"
+  ) +
+  facet_wrap( ~ group, scales = "free")
 
-ggplot(data = OF, 
+ggplot(data = OF,
        aes(y = cbg, x = thcv, color = treatment)) +
   geom_point(alpha = 0.5) +
-  facet_wrap(~group) 
-
-
+  geom_smooth(
+    method = "lm",
+    formula = y ~ x,
+    se = FALSE,
+    data = OF |> filter(treatment == "5.9% THC (low dose)"),
+    color = "green"
+  ) +
+  geom_smooth(
+    method = "lm",
+    formula = y ~ x,
+    se = FALSE,
+    data = OF |> filter(treatment == "13.4% THC (high dose)"),
+    color = "blue"
+  ) +
+  facet_wrap( ~ group, scales = "free")
 ```
 
 this seems to show that even though low dose/high dose doesn't effect chemical concentration overall (as shown in the plots in lecture notes), they do change the correlation between chemicals. Maybe a potention extended question would be "do some compound repsond more to high dose/low dose compared to the other?"
