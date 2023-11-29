@@ -9,6 +9,23 @@ output:
 
 ## Introduction
 
+For our case study, the primary focus is to figure out which compound is the best biomarker for recent use while also deciphering which matrix is most optimal as well. In further detail, the compound, which could be THC, CBN, etc., falls within one of three matrices of the following: blood, breath, and oral fluid. Within the time frame of three hours or 180 minutes, we would like to figure out which compound and it's respective matrix is the most potent so that we could extrapolate our findings to real life applications. The reason as to why this study is important is because accurately testing for marijuana usage is very important in different everyday scenarios. For example, THC in marijuana can affect an individuals motor skills, depth perception, and overall cognition. This then can hinder their ability to work effectively and safely. According to the National Institute on Drug Abuse, it is noted that employees that tested positive for marijuana had an increase of 55% when it came to workplace accidents and that they were responsible for another increase of 85% of work-related injuries [^NSC]. These liabilities can hurt the company and more importantly, the individual; hence why it is paramount for companies to run effective drug tests on their employees. Another example why finding out which compound and matrix is most effective to use when conducting a drug test is for scenarios in which we'd like to find out if a driver is under the influence or not. Quoted directly from the National Highway Traffic Safety Administration, "In the 2013-2014 survey [^survey], 12.6 percent of weekend nighttime drivers tested positive for marijuana. That’s a 48-percent increase in less than 10 years" [^NHTSA]. 
+
+All of this information is quite alarming and that is why we want to figure out which compound and matrix is the most effective to analyze when trying to figure out if an individual is under the influence or not. It is also worth mentioning that we'd like to go deeper with this study by also trying to find out if some of these compounds are more sensitive to higher or lower doses of marijuana. The relationship between these variables can provide us with substantial information in regards to figuring out if some compounds are worth paying more attention to than others. This ultimately saves the tester a lot of time when they're running a drug test on an individual. 
+
+
+
+[^NSC]: (2023) Marijuana at Work: What Employers Need to Know. NSC. 
+https://www.nsc.org/nsc-membership/marijuana-at-work#:~:text=According%20to%20a%20study%20reported,Decreased%20productivity
+
+[^NHTSA]: Drug-Impaired Driving. NHTSA.
+https://www.nhtsa.gov/risky-driving/drug-impaired-driving#:~:text=In%202007%2C%20NHTSA's%20National%20Roadside,in%20less%20than%2010%20years.
+
+[^survey]: Research Note: Results of the 2013-2014 National Roadside Survey of Alcohol and Drug Use by Drivers. NHTSA.
+https://www.nhtsa.gov/sites/nhtsa.gov/files/812118-roadside_survey_2014.pdf
+
+
+
 ```{r setup, include=FALSE}
 
 # control global Rmd chunk settings
@@ -38,7 +55,7 @@ library(cowplot)
 
 ## Question
 -   Which compound, in which matrix, and at what cutoff is the best biomarker of recent use? (recent use is defined as 3h)
--   "do some compound repsond more to high dose/low dose compared to the other?"
+-   "do some compound respond more to high dose/low dose compared to the other?"
 
 ## The Data
 
