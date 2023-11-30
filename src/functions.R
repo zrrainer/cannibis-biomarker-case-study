@@ -106,5 +106,51 @@ compound_scatterplot_group_by_treatment_log <- function(dataset, compound, timep
 }
 
 
+#exact same as compound_scatterplot_group_by_treatment_log() but include y min max as parameter
+#plot value of compound across time colour by treatment, log transformed
+compound_scatterplot_group_by_treatment_log_yscaled <- function(dataset, compound, timepoints,ymin,ymax){
+  if(max(dataset[,compound],na.rm=TRUE)==0){
+    print(
+      dataset |> 
+        filter(!is.na(time_from_start)) |>
+        mutate(log_transformed_compound = log(get(compound)))|>
+        ggplot(aes_string(x="time_from_start", 
+                          y="log_transformed_compound",
+                          color="treatment")) + 
+        geom_point() +
+        geom_vline(data=timepoints, aes(xintercept=as.numeric(stop)), 
+                   linetype="dashed", 
+                   color="gray28") +
+        scale_color_manual(values=c("#19831C", "#A27FC9","#A27FC9")) +
+        scale_y_continuous(limits=c(0,3)) +
+        theme_classic() +
+        theme(legend.position="bottom",
+              legend.title=element_blank()) +
+        labs(x='Time From Start (min)',
+             y=gsub('GLUC', 'gluc',gsub("_", "-", toupper(compound))))
+    )}else{
+      print(
+        dataset |> 
+          filter(!is.na(time_from_start)) |>
+          mutate(log_transformed_compound = log(get(compound)))|>
+          ggplot(aes_string(x="time_from_start", 
+                            y="log_transformed_compound",
+                            color="treatment")) + 
+          geom_point() +
+          geom_vline(data=timepoints, aes(xintercept=as.numeric(stop)), 
+                     linetype="dashed", 
+                     color="gray28")  +
+          scale_color_manual(values=c("#19831C", "#A27FC9","#A27FC9")) +
+          theme_classic() +
+          theme(legend.position="bottom",
+                legend.title=element_blank()) +
+          labs(x='Time From Start (min)',
+               y=gsub('GLUC', 'gluc', gsub("_", "-", toupper(compound)))) +
+          scale_y_continuous(limits=c(ymin, ymax))
+      )
+    }
+}
+
+
 
 
