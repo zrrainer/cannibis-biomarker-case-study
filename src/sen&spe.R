@@ -128,6 +128,9 @@ sens_spec <- function(dataset, compound, start, stop, tpt_use,
   return(output)
 }
 
+
+
+
 #passes parameters into sens_spec() and return a data frame
 #params:
   #dataset:WB/OF/BR
@@ -157,4 +160,77 @@ sens_spec_cpd <- function(dataset, cpd, timepoints, splits = NULL){
     pmap_dfr(sens_spec, dataset, compound = cpd, splits = splits)
   return(out)
 }
+
+
+#parameter:
+#output: output_WB/OF/BR
+average_sens_spec = function(output) {
+  output |>
+    group_by(compound, detection_limit) |>
+    summarize(average_sensitivity = mean(Sensitivity, na.rm = TRUE), average_specificity = mean(Specificity, na.rm = TRUE)) |>
+    ungroup(compound) 
+}
+
+
+
+
+
+
+#sens_spec() but with limits on the splits. only used once. 
+sens_spec_OFTHC <- function(dataset, compound, start, stop, tpt_use, 
+                            lowest_value = 0.5, splits = NULL, ...){
+  # if it's not all NAs...
+  if(sum(is.na(dataset[,compound])) != nrow(dataset)){
+    # specify what splits should be used for calculations
+    if(is.null(splits)){
+      limits <- dataset[is.finite(rowSums(dataset[,compound])),compound] #sums up values in the specified compound col, unless its infinite
+      ## define lower and upper limits
+      lower = 0
+      upper = 2
+      ## determine splits to use for calculations
+      tosplit = pull(limits[,1])[limits[,1]>0]
+      ## only split if there are detectable limits:
+      if(length(tosplit)>=1){
+        splits = c(lowest_value, quantile(tosplit, probs=seq(0, 1, by = 0.01), na.rm=TRUE))
+        splits = unique(splits)
+        #splits: a vector containing lowest_value, and values of 100 percentiles
+      }else{
+        splits = 0
+      }
+    }else{
+      splits = splits
+    }
+    # filter to include timepoint of interest
+    dataset <- dataset %>% 
+      filter(time_from_start > start & time_from_start <= stop & !is.na(timepoint_use))
+    dataset_removedups <- dataset %>%
+      filter(!is.na(timepoint_use)) %>% 
+      group_by(timepoint_use) %>% 
+      distinct(id, .keep_all = TRUE) %>% 
+      ungroup()
+    
+    ## create empty output variable which we'll fill in
+    ## iterate through each possible dose and calculate
+    output <- map_dfr(as.list(splits), ~make_calculations(dataset, 
+                                                          dataset_removedups, 
+                                                          split = .x,
+                                                          compound,
+                                                          start = start,
+                                                          stop = stop, 
+                                                          tpt_use = tpt_use))
+  }
+  
+  return(output)
+}
+
+#again, only used once
+sens_spec_cpd_OFTHC <- function(dataset, cpd, timepoints, splits = NULL){
+  args2 <- list(start = timepoints$start, 
+                stop = timepoints$stop, 
+                tpt_use = timepoints$timepoint)
+  out <- args2 %>% 
+    pmap_dfr(sens_spec, dataset, compound = cpd, splits = seq(0, 2, by = 0.02))
+  return(out)
+}
+
 
