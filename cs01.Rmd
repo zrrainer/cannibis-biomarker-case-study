@@ -9,22 +9,16 @@ output:
 
 ## Introduction
 
-For our case study, the primary focus is to figure out which compound is the best biomarker for recent use while also deciphering which matrix is most optimal as well. In further detail, the compound, which could be THC, CBN, etc., falls within one of three matrices of the following: blood, breath, and oral fluid. Within the time frame of three hours or 180 minutes, we would like to figure out which compound and it's respective matrix is the most potent so that we could extrapolate our findings to real life applications. The reason as to why this study is important is because accurately testing for marijuana usage is very important in different everyday scenarios. For example, THC in marijuana can affect an individuals motor skills, depth perception, and overall cognition. This then can hinder their ability to work effectively and safely. According to the National Institute on Drug Abuse, it is noted that employees that tested positive for marijuana had an increase of 55% when it came to workplace accidents and that they were responsible for another increase of 85% of work-related injuries [^NSC]. These liabilities can hurt the company and more importantly, the individual; hence why it is paramount for companies to run effective drug tests on their employees. Another example why finding out which compound and matrix is most effective to use when conducting a drug test is for scenarios in which we'd like to find out if a driver is under the influence or not. Quoted directly from the National Highway Traffic Safety Administration, "In the 2013-2014 survey [^survey], 12.6 percent of weekend nighttime drivers tested positive for marijuana. That’s a 48-percent increase in less than 10 years" [^NHTSA]. 
+For our case study, the primary focus is to figure out which compound is the best biomarker for recent use while also deciphering which matrix is most optimal as well. In further detail, the compound, which could be THC, CBN, etc., falls within one of three matrices of the following: blood, breath, and oral fluid. Within the time frame of three hours or 180 minutes, we would like to figure out which compound and it's respective matrix is the most potent so that we could extrapolate our findings to real life applications. The reason as to why this study is important is because accurately testing for marijuana usage is very important in different everyday scenarios. For example, THC in marijuana can affect an individuals motor skills, depth perception, and overall cognition. This then can hinder their ability to work effectively and safely. According to the National Institute on Drug Abuse, it is noted that employees that tested positive for marijuana had an increase of 55% when it came to workplace accidents and that they were responsible for another increase of 85% of work-related injuries [^1]. These liabilities can hurt the company and more importantly, the individual; hence why it is paramount for companies to run effective drug tests on their employees. Another example why finding out which compound and matrix is most effective to use when conducting a drug test is for scenarios in which we'd like to find out if a driver is under the influence or not. Quoted directly from the National Highway Traffic Safety Administration, "In the 2013-2014 survey [^2], 12.6 percent of weekend nighttime drivers tested positive for marijuana. That's a 48-percent increase in less than 10 years" [^3].
 
-All of this information is quite alarming and that is why we want to figure out which compound and matrix is the most effective to analyze when trying to figure out if an individual is under the influence or not. It is also worth mentioning that we'd like to go deeper with this study by also trying to find out if some of these compounds are more sensitive to higher or lower doses of marijuana. The relationship between these variables can provide us with substantial information in regards to figuring out if some compounds are worth paying more attention to than others. This ultimately saves the tester a lot of time when they're running a drug test on an individual. 
+[^1]:
+    (2023) Marijuana at Work: What Employers Need to Know. NSC. <https://www.nsc.org/nsc-membership/marijuana-at-work#>:\~:text=According%20to%20a%20study%20reported,Decreased%20productivity
 
+[^2]: Research Note: Results of the 2013-2014 National Roadside Survey of Alcohol and Drug Use by Drivers. NHTSA. <https://www.nhtsa.gov/sites/nhtsa.gov/files/812118-roadside_survey_2014.pdf>
 
+[^3]: Drug-Impaired Driving. NHTSA. <https://www.nhtsa.gov/risky-driving/drug-impaired-driving#>:\~:text=In%202007%2C%20NHTSA's%20National%20Roadside,in%20less%20than%2010%20years.
 
-[^NSC]: (2023) Marijuana at Work: What Employers Need to Know. NSC. 
-https://www.nsc.org/nsc-membership/marijuana-at-work#:~:text=According%20to%20a%20study%20reported,Decreased%20productivity
-
-[^NHTSA]: Drug-Impaired Driving. NHTSA.
-https://www.nhtsa.gov/risky-driving/drug-impaired-driving#:~:text=In%202007%2C%20NHTSA's%20National%20Roadside,in%20less%20than%2010%20years.
-
-[^survey]: Research Note: Results of the 2013-2014 National Roadside Survey of Alcohol and Drug Use by Drivers. NHTSA.
-https://www.nhtsa.gov/sites/nhtsa.gov/files/812118-roadside_survey_2014.pdf
-
-
+All of this information is quite alarming and that is why we want to figure out which compound and matrix is the most effective to analyze when trying to figure out if an individual is under the influence or not. It is also worth mentioning that we'd like to go deeper with this study by also trying to find out if some of these compounds are more sensitive to higher or lower doses of marijuana. The relationship between these variables can provide us with substantial information in regards to figuring out if some compounds are worth paying more attention to than others. This ultimately saves the tester a lot of time when they're running a drug test on an individual.
 
 ```{r setup, include=FALSE}
 
@@ -74,7 +68,7 @@ OF = read.csv("data/OF.csv")
 
 We re-coded and re-leveled variables (`Treatment` and `Group`), cleans column names, and renames specific columns (`x11_oh_thc` to `thcoh`, `thc_v` to `thcv`, `thccooh_gluc` to `thc_cooh_gluc`, and `thccooh` to `thc_cooh`) in all 3 tables. Using `janitor` package to organized column names.
 
-**Suggestion: add a new column recording whether someone should be determined to have recent THC use (THC group, within 3 hr of smoking) or not(all placebo group, or THC group outside the 3hr window)
+\*\*Suggestion: add a new column recording whether someone should be determined to have recent THC use (THC group, within 3 hr of smoking) or not(all placebo group, or THC group outside the 3hr window)
 
 ```{r re-leveling-data}
 
@@ -200,7 +194,7 @@ assign_timepoint <- function(x, timepoints) {
 }
 ```
 
-We created a new column, **`timepoint_use`**, in each table by mapping the **`time_from_start`** values to specific timepoints defined in separate reference data frames (**`timepoints_WB`**, **`timepoints_OF`**, **`timepoints_BR`**). Finally, releveled the **`timepoint_use`** factor variable to align with the order specified in the reference data frames. This ensures consistent and meaningful timepoint labels for subsequent analyses or visualizations in the study.
+We created a new column, **`timepoint_use`**, in each table by mapping the **`time_from_start`** values to specific timepoints defined in separate reference data frames (**`timepoints_WB`**, **`timepoints_OF`**, **`timepoints_BR`**). Finally, re-leveled the **`timepoint_use`** factor variable to align with the order specified in the reference data frames. This ensures consistent and meaningful timepoint labels for subsequent analyses or visualizations in the study.
 
 ```{r}
 
@@ -234,11 +228,13 @@ BR <- drop_dups(BR)
 
 ```
 
+## Analysis
+
 ### Exploratory Data Analysis
 
 #### compounds measurements over time by treatment
 
-The following plots include of all compounds against time, distinguished by color according to their respective groups. To achieve a comprehensive understanding, we generated scatterplots for compounds across three distinct matrices—namely, whole blood, oral fluid, and breath. This analysis encompasses various timepoints and considers different treatments, namely, placebo, low dose, and high dose.
+The following plots include of all compounds against time, distinguished by color according to their respective groups. To achieve a comprehensive understanding, we generated scatterplots for compounds across three distinct matrices---namely, whole blood, oral fluid, and breath. This analysis encompasses various timepoints and considers different treatments, namely, placebo, low dose, and high dose.
 
 Upon close examination of the scatterplots, a noteworthy observation emerges, particularly concerning the **THC** biomarker in whole blood. This specific biomarker appears to offer a potentially enhanced indication of recent cannabis joint usage. The scatterplot reveals a discernible separation between the **placebo** and **THC** treatment groups, suggesting that the **THC** measurement in whole blood may serve as a more reliable indicator of recent cannabis joint consumption.
 
@@ -307,9 +303,9 @@ output_OF <- map_dfr(compounds_OF,
 
 #### cutoff vs. sensitivity/specificity
 
-Here we plot the value of the cutoff against sensitivity and specificity for every compound in every matrix, and arrange them all into one big plot. This ROC curve of sensitivity and specificity against cutoff values suggests an exploration of optimal cutoff points, which is crucial for answering question 1.
+Here we plot the value of the cutoff against sensitivity and specificity for every compound in every matrix, and arrange them all into one big plot. This is also known as the ROC curve of sensitivity and specificity against cutoff values suggests an exploration of optimal cutoff points. Overall, the specificity of all compounds increases when detection limit rises. On the other hand, sensitivity drops to zero when detection limit rises.
 
-```{r, cache=TRUE}
+```{r, cache=TRUE, include=FALSE}
 #plot detection limit(cutoff) vs. sensitivity and specificity
 ss_WB <-
   ss_plot(output_WB, tpts = length(unique(output_WB$time_start)), tissue = "Blood")
@@ -317,8 +313,9 @@ ss_OF <-
   ss_plot(output_OF, tpts = length(unique(output_OF$time_start)), tissue = "Oral Fluid")
 ss_BR <-
   ss_plot(output_BR, tpts = length(unique(output_BR$time_start)), tissue = "Breath")
+```
 
-
+```{r fig.height=7, fig.width=15}
 #arranges ss plots into one
 ss_bottom_row <-
   plot_grid(
@@ -339,16 +336,20 @@ plot_grid(
 
 ```
 
-## sensitivity vs. specificity
+#### sensitivity vs. specificity
 
-Here we plot sensitivity vs. specificity for every compound in every matrix, and arrange them all into one big plot
+In this visual representation, we graph the sensitivity against specificity for each compound within every matrix, consolidating the data into a comprehensive plot. This collective visualization allows for a convenient comparison of the performance of various biomarkers concerning their specificity and sensitivity.
 
-```{r fig.height=7, fig.width=15}
+The plot serves as a valuable tool for discerning the intricate balance between specificity and sensitivity exhibited by different compounds. While numerous compounds demonstrate an ability to achieve a specificity of 100, it's essential to acknowledge the inherent trade-off with sensitivity. In-depth analysis of this plot becomes instrumental in the decision-making process, guiding us to identify the optimal biomarker for recent use based on factors such as the compound itself, the matrix in which it is observed, and the specific cutoff value applied.
+
+```{r include=FALSE}
 #plot sensitivity vs. specificity
 roc_WB = roc_plot(output_WB, tpts = length(unique(output_WB$time_start)), tissue = "Blood")
-roc_OF = roc_plot(output_WB, tpts = length(unique(output_WB$time_start)), tissue = "Oral Fluid")
-roc_BR = roc_plot(output_WB, tpts = length(unique(output_WB$time_start)), tissue = "Breath")
+roc_OF = roc_plot(output_OF, tpts = length(unique(output_OF$time_start)), tissue = "Oral Fluid")
+roc_BR = roc_plot(output_BR, tpts = length(unique(output_BR$time_start)), tissue = "Breath")
+```
 
+```{r fig.height=7, fig.width=15}
 #arrange roc plots
 roc_bottom_row <-
   plot_grid(
@@ -368,7 +369,9 @@ plot_grid(
 )
 ```
 
-## plot sensitivity and speciticity over time given specific cutoffs
+#### plot sensitivity and specificity over time given specific cutoffs
+
+Taking a deeper dive into sensitivity and specificity over time over time for the measurement of `THC` in **Blood** and **Oral Fluid** tissues. In direct comparison between the two measurement methods of `THC`, it becomes evident that **Oral Fluid** outshines its counterpart in terms of both sensitivity and specificity, particularly within the critical time span of three hours post-smoking.
 
 ```{r}
 #pass specific cutoff into splits parameter
@@ -379,9 +382,15 @@ WB_THC <- sens_spec_cpd(
   splits =  c(0.5, 1, 2, 5, 10)
 ) |> clean_gluc()
 
-WB_THC
+OF_CBG <- sens_spec_cpd(
+  dataset = OF,
+  cpd = 'thc',
+  timepoints = timepoints_OF,
+  splits =  c(0.5, 1, 2, 5, 10)
+) |> clean_gluc()
 ```
-```{r}
+
+```{r fig.width=13}
 blood_levels <- c("pre-smoking\nN=189", "0-30\nmin\nN=187", "31-70\nmin\nN=165",
                   "71-100\nmin\nN=157", "101-180\nmin\nN=168", "181-210\nmin\nN=103",
                   "211-240\nmin\nN=127", "241-270\nmin\nN=137", "271-300\nmin\nN=120",
@@ -390,18 +399,26 @@ of_levels <- c("pre-smoking\nN=192", "0-30\nmin\nN=192", "31-90\nmin\nN=117",
                "91-180\nmin\nN=99", "181-210\nmin\nN=102", "211-240\nmin\nN=83",
                "241-270\nmin\nN=90",  "271+\nmin\nN=76")
 
+plot_cutoffs(
+  dataset = WB_THC,
+  timepoint_use_variable = WB$timepoint_use,
+  tissue = "Blood",
+  cpd = "THC",
+  x_labels = blood_levels
+)[1]
 
-plot_cutoffs(dataset=WB_THC, 
-             timepoint_use_variable=WB$timepoint_use, 
-             tissue="Blood", 
-             cpd="THC", 
-             x_labels=blood_levels)
-
+plot_cutoffs(
+  dataset = OF_CBG,
+  timepoint_use_variable = OF$timepoint_use,
+  tissue = "Oral Fluid",
+  cpd = "THC",
+  x_labels = of_levels
+)[1]
 ```
 
-## extended question  
+### extended question
 
-### wrangling  
+#### wrangling
 
 ```{r}
 WB_long = WB |>
@@ -409,15 +426,15 @@ WB_long = WB |>
 
 OF_long = OF |>
   pivot_longer(6:12, names_to = "compound")
-  
+
 BR_long <- BR |> pivot_longer(6)
 
 df_full <- bind_rows(WB_long, OF_long, BR_long)
 ```
 
-### Part 1: so uh the "placebo groups might have different compound measurements" hypothesis has been disproven :(
+#### Part 1: so uh the "placebo groups might have different compound measurements" hypothesis has been disproven :(
 
-This one is me testing out an extended question our group proposed: does taking a placebo have an effect on any of the compound? 
+This one is me testing out an extended question our group proposed: does taking a placebo have an effect on any of the compound?
 
 Theoretically, no, it shouldn't. But the graph about subjective highness being basically random really peaked my interest and I thought there might be something worth looking into. But the data disproves that theory :(
 
@@ -425,19 +442,82 @@ Theoretically, no, it shouldn't. But the graph about subjective highness being b
 WB_long |>
   filter(treatment == "Placebo") |>
   filter(timepoint_use == "pre-smoking" |
-           timepoint_use == "0-30 min") |>
+         timepoint_use == "0-30 min") |>
   ggplot(mapping = aes(x = log(value))) +
   geom_histogram(binwidth = 0.5) +
   facet_grid(vars(timepoint_use), vars(compound), scales = "free")
 ```
 
-###part 2: BUT i have a different extended questgion we can look into
+#### part 2: BUT i have a different extended question we can look into
 
-This one is SUPER interesting. Some of the pairplots we went over in lecture notes 12 looked like they has two separate lines, so I thought one of the variables might change how compounds correlate with each other - and they do! Namely, the low dose and high dose group seems to have different slopes when it comes to the correlation between certain compounds. 
+This one is SUPER interesting. Some of the pairplots we went over in lecture notes 12 looked like they has two separate lines, so I thought one of the variables might change how compounds correlate with each other - and they do! Namely, the low dose and high dose group seems to have different slopes when it comes to the correlation between certain compounds.
 
 Here's a few of the more obvious ones:
 
 ```{r fig.width=9}
+ggplot(data = WB,
+       aes(y = cbg, x = thc, color = treatment)) +
+  geom_point(alpha = 0.5) +
+  facet_wrap(~ group, scales = "free")
+
+ggplot(data = OF,
+       aes(y = thc, x = cbg, color = treatment)) +
+  geom_point(alpha = 0.5) +
+  facet_wrap( ~ group, scales = "free")
+
+ggplot(data = OF,
+       aes(y = cbn, x = cbg, color = treatment)) +
+  geom_point(alpha = 0.5) +
+  facet_wrap( ~ group, scales = "free")
+
+ggplot(data = OF,
+       aes(y = cbg, x = thcv, color = treatment)) +
+  geom_point(alpha = 0.5) +
+  facet_wrap( ~ group, scales = "free")
+```
+
+this seems to show that even though low dose/high dose doesn't effect chemical concentration overall (as shown in the plots in lecture notes), they do change the correlation between chemicals. Maybe a potential extended question would be "do some compound respond more to high dose/low dose compared to the other?"
+
+### Data Analysis
+
+Taking a deeper dive into sensitivity and specificity over time over time for the measurement of `THC` in **Blood** and **Oral Fluid** tissues. In direct comparison between the two measurement methods of `THC`, it becomes evident that **Oral Fluid** outshines its counterpart in terms of both sensitivity and specificity, particularly within the critical time span of three hours post-smoking.
+
+```{r}
+#pass specific cutoff into splits parameter
+WB_THC <- sens_spec_cpd(
+  dataset = WB,
+  cpd = 'thc',
+  timepoints = timepoints_WB,
+  splits =  c(0.5, 1, 2, 5, 10)
+) |> clean_gluc()
+
+OF_CBG <- sens_spec_cpd(
+  dataset = OF,
+  cpd = 'thc',
+  timepoints = timepoints_OF,
+  splits =  c(0.5, 1, 2, 5, 10)
+) |> clean_gluc()
+```
+
+```{r}
+plot_cutoffs(
+  dataset = WB_THC,
+  timepoint_use_variable = WB$timepoint_use,
+  tissue = "Blood",
+  cpd = "THC",
+  x_labels = blood_levels
+)[1]
+
+plot_cutoffs(
+  dataset = OF_CBG,
+  timepoint_use_variable = OF$timepoint_use,
+  tissue = "Oral Fluid",
+  cpd = "THC",
+  x_labels = of_levels
+)[1]
+```
+
+```{r}
 ggplot(data = WB,
        aes(y = cbg, x = thc, color = treatment)) +
   geom_point(alpha = 0.5) +
@@ -520,21 +600,7 @@ ggplot(data = OF,
   facet_wrap( ~ group, scales = "free")
 ```
 
-this seems to show that even though low dose/high dose doesn't effect chemical concentration overall (as shown in the plots in lecture notes), they do change the correlation between chemicals. Maybe a potention extended question would be "do some compound repsond more to high dose/low dose compared to the other?"
-```
-
-## Analysis
-
-```{r}
-
-
-```
-
-### Data Analysis
-
-```{r}
-
-```
+In the visualization, we systematically analyzed each compound's correlation patterns under low and high doses to discern whether particular compounds showcase distinct responses to dosage variations. We fit 2 linear models on low dose group and high dose group respectivly. Quantifying the degree of change in correlation coefficients for each compound under different dosage conditions. This approach could provide insights into the magnitude of variations in compound interactions.
 
 ### Results
 
