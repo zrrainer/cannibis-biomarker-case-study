@@ -345,29 +345,8 @@ plot_grid(
 )
 
 ```
-Average sensitivity and specificity vs. detection limit
-```{r, cache=TRUE}
-output_WB_avg = average_sens_spec(output = output_WB)
-output_OF_avg = average_sens_spec(output = output_OF)
-output_BR_avg = average_sens_spec(output = output_BR)
 
-
-ss_WB_avg_together <-
-  ss_plot_avg_together(output_WB_avg, tpts = length(unique(output_WB$time_start)), tissue = "Blood")
-ss_OF_avg_together <-
-  ss_plot_avg_together(output_OF_avg, tpts = length(unique(output_WB$time_start)), tissue = "Oral Fluid")
-ss_BR_avg_together <-
-  ss_plot_avg_together(output_BR_avg, tpts = length(unique(output_WB$time_start)), tissue = "Breath")
-```
-
-i will now remove every compound where the average sens and spec does not intersect. reasoning: for compounds with no intersection, optimal sensitivity (left most point of the graph) = worst specificity. there is no room for adjustment because any adjustment from there on would just make everything worse. 
-```{r}
-compounds_WB = c("thc")
-compounds_OF = c("thc")
-compounds_BR = NULL
-```
-
-Average sensitivity and specificity vs. detection limit
+####Average sensitivity and specificity vs. detection limit
 
 ```{r, cache=TRUE}
 output_WB_avg = average_sens_spec(output = output_WB)
@@ -383,44 +362,6 @@ ss_BR_avg_together <-
   ss_plot_avg_together(output_BR_avg, tpts = length(unique(output_WB$time_start)), tissue = "Breath")
 ```
 
-```{r fig.height=7, fig.width=15}
-output_WB <- map_dfr(compounds_WB,
-                     ~ sens_spec_cpd(
-                       dataset = WB,
-                       cpd = all_of(.x),
-                       timepoints =  timepoints_WB
-                     )) |> clean_gluc()
-
-
-output_OF <- map_dfr(compounds_OF,
-                     ~ sens_spec_cpd(
-                       dataset = OF,
-                       cpd = all_of(.x),
-                       timepoints = timepoints_OF
-                     ))  |> clean_gluc()
-
-#plot sensitivity vs. specificity
-roc_WB = roc_plot(output_WB, tpts = length(unique(output_WB$time_start)), tissue = "Blood")
-roc_OF = roc_plot(output_OF, tpts = length(unique(output_OF$time_start)), tissue = "Oral Fluid")
-
-# #arrange roc plots
-# roc_bottom_row <-
-#   plot_grid(
-#     roc_OF,
-#     roc_BR,
-#     labels = c('B', 'C'),
-#     label_size = 12,
-#     ncol = 2,
-#     rel_widths = c(0.66, .33)
-#   )
-# plot_grid(
-#   roc_WB,
-#   roc_bottom_row,
-#   labels = c('A', ''),
-#   label_size = 12,
-#   ncol = 1
-# )
-```
 It should be apparent that OF-THC is the superior choice.  now we dig deeper into OF-THC and find the specific cutoff. referring back to the Average sensitivity and specificity vs. detection limit plot, we see that the detection limit is at...very close to 0 when both sensitivity and specificity are high. Let's try out some more cutoffs close to 0. 
 
 i will now remove every compound where the average sens and spec does not intersect. reasoning: for compounds with no intersection, optimal sensitivity (left most point of the graph) = worst specificity. there is no room for adjustment because any adjustment from there on would just make everything worse.
@@ -582,169 +523,11 @@ BR_long <- BR |> pivot_longer(6)
 df_full <- bind_rows(WB_long, OF_long, BR_long)
 ```
 
-#### part 2: BUT i have a different extended question we can look into
-
-This one is SUPER interesting. Some of the pairplots we went over in lecture notes 12 looked like they has two separate lines, so I thought one of the variables might change how compounds correlate with each other - and they do! Namely, the low dose and high dose group seems to have different slopes when it comes to the correlation between certain compounds.
-
-Here's a few of the more obvious ones:
-
-```{r fig.width=9}
-ggplot(data = WB,
-       aes(y = cbg, x = thc, color = treatment)) +
-  geom_point(alpha = 0.5) +
-  facet_wrap(~ group, scales = "free")
-
-ggplot(data = OF,
-       aes(y = thc, x = cbg, color = treatment)) +
-  geom_point(alpha = 0.5) +
-  facet_wrap( ~ group, scales = "free")
-
-ggplot(data = OF,
-       aes(y = cbn, x = cbg, color = treatment)) +
-  geom_point(alpha = 0.5) +
-  facet_wrap( ~ group, scales = "free")
-
-ggplot(data = OF,
-       aes(y = cbg, x = thcv, color = treatment)) +
-  geom_point(alpha = 0.5) +
-  facet_wrap( ~ group, scales = "free")
-```
-
-this seems to show that even though low dose/high dose doesn't effect chemical concentration overall (as shown in the plots in lecture notes), they do change the correlation between chemicals. Maybe a potential extended question would be "do some compound respond more to high dose/low dose compared to the other?"
-
-### Data Analysis
-
-Taking a deeper dive into sensitivity and specificity over time over time for the measurement of `THC` in **Blood** and **Oral Fluid** tissues. In direct comparison between the two measurement methods of `THC`, it becomes evident that **Oral Fluid** outshines its counterpart in terms of both sensitivity and specificity, particularly within the critical time span of three hours post-smoking.
-
-```{r fig.width=9}
-#pass specific cutoff into splits parameter
-OF_THC <- sens_spec_cpd(
-  dataset = OF,
-  cpd = 'thc',
-  timepoints = timepoints_OF,
-  splits =  c(0.5, 1, 2, 5, 10)
-) |> clean_gluc()
-
-of_levels <- c("pre-smoking\nN=192", "0-30\nmin\nN=192", "31-90\nmin\nN=117",
-               "91-180\nmin\nN=99", "181-210\nmin\nN=102", "211-240\nmin\nN=83",
-               "241-270\nmin\nN=90",  "271+\nmin\nN=76")
-
-plot_cutoffs(dataset=OF_THC, 
-             timepoint_use_variable=OF$timepoint_use, 
-             tissue="Oral Fluid", 
-             cpd="THC", 
-             x_labels=NULL)
-
-```
-the average sensitivity is a lot more sensitive (ha) to change than the average specificity - specificity only dips in the 31-90min window when the cutoff is lowered, whereas a lower cutoff increases overall sensitivity all across the board, no matter the time. additionally, this 31-90min window where the specificity is heavily effected by a low cutoff is, in my opinion, trivial. it should be quite apparent that someone is high if they smoked within the last 90 min. a lowered specificity in this time frame isnt cause for too much concern, considering how much sensitivity is gained via using a low cutoff.
-
-in a nutshell: a low cutoff is optimal. approxiamately somewhere between 0-2. let's test more cutoffs in this range:
-```{r}
-OF_THC <- sens_spec_cpd(
-  dataset = OF,
-  cpd = 'thc',
-  timepoints = timepoints_OF,
-  splits =  c(0.1, 0.25, 0.5, 1, 1.5)
-) |> clean_gluc()
-
-of_levels <- c("pre-smoking\nN=192", "0-30\nmin\nN=192", "31-90\nmin\nN=117",
-               "91-180\nmin\nN=99", "181-210\nmin\nN=102", "211-240\nmin\nN=83",
-               "241-270\nmin\nN=90",  "271+\nmin\nN=76")
-
-plot_cutoffs(dataset=OF_THC, 
-             timepoint_use_variable=OF$timepoint_use, 
-             tissue="Oral Fluid", 
-             cpd="THC", 
-             x_labels=NULL)
-```
-they all look pretty promising... we need a way to quantify this. I am gonna calculate the sensitivity and specificity for cutoff values in between 0 and 2. 
-```{r, cache=TRUE}
-output_OF = sens_spec_cpd_OFTHC(
-                       dataset = OF,
-                       cpd = "thc",
-                       timepoints = timepoints_OF
-                     )  |> clean_gluc()
-
-output_OF_avg = average_sens_spec(output = output_OF)
-
-output_OF_avg
-
-```
-lets plot this really quick
-```{r}
-ss_OF_avg_together <-
-  ss_plot_avg_together(output_OF_avg, tpts = length(unique(output_WB$time_start)), tissue = "Oral Fluid")
-
-```
-oh we found it. the place where they intersect is the maximum of sensitivity+specificity. lets get the specific value
-```{r}
-output_OF_avg |>
-  filter(abs(average_sensitivity-average_specificity) < 0.01) |>
-  mutate(diff = abs(average_sensitivity-average_specificity))
-```
-at cutoff 0.82-0.90, the difference between the average sensitivity and average specificity is minimized. we'll pick 0.85 for aestheicism's sake.
-
-## conclusion
-the optimal biomarker is OF,THC, at cutoff = 0.85.
-
-
-
-
-## extended question  
-
-### wrangling  
-
-```{r}
-WB_long = WB |>
-  pivot_longer(6:13, names_to = "compound")
-
-OF_long = OF |>
-  pivot_longer(6:12, names_to = "compound")
-  
-BR_long <- BR |> pivot_longer(6)
-
-df_full <- bind_rows(WB_long, OF_long, BR_long)
-```
-
-### Part 1: so uh the "placebo groups might have different compound measurements" hypothesis has been disproven :(
-
-This one is me testing out an extended question our group proposed: does taking a placebo have an effect on any of the compound? 
-
-Theoretically, no, it shouldn't. But the graph about subjective highness being basically random really peaked my interest and I thought there might be something worth looking into. But the data disproves that theory :(
-
-```{r}
-WB_long |>
-  filter(treatment == "Placebo") |>
-  filter(timepoint_use == "pre-smoking" |
-           timepoint_use == "0-30 min") |>
-  ggplot(mapping = aes(x = log(value))) +
-  geom_histogram(binwidth = 0.5) +
-  facet_grid(vars(timepoint_use), vars(compound), scales = "free")
-```
-
 ###part 2: BUT i have a different extended questgion we can look into
 
 This one is SUPER interesting. Some of the pairplots we went over in lecture notes 12 looked like they has two separate lines, so I thought one of the variables might change how compounds correlate with each other - and they do! Namely, the low dose and high dose group seems to have different slopes when it comes to the correlation between certain compounds. 
 
 Here's a few of the more obvious ones:
-
-```{r fig.width=9}
-plot_cutoffs(
-  dataset = WB_THC,
-  timepoint_use_variable = WB$timepoint_use,
-  tissue = "Blood",
-  cpd = "THC",
-  x_labels = blood_levels
-)[1]
-
-plot_cutoffs(
-  dataset = OF_CBG,
-  timepoint_use_variable = OF$timepoint_use,
-  tissue = "Oral Fluid",
-  cpd = "THC",
-  x_labels = of_levels
-)[1]
-```
 
 ```{r}
 ggplot(data = WB,
@@ -848,7 +631,6 @@ linear_reg() |>
   set_engine("lm") |>
   fit(cbg ~ thc, data = WB_high) |>
   tidy()
-
 ```
 
 ```{r}
