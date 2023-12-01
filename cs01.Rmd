@@ -232,14 +232,9 @@ OF_ex = drop_dups(OF)
 
 ```
 
-<<<<<<< HEAD
-=======
-## Analysis
 
-### Exploratory Data Analysis
->>>>>>> 071f6c9873b3f21eaaccd36864855281bd9c697e
+## EDA
 
-## Exploratory Data Analysis
 ### compounds measurements over time by treatment
 
 The following plots include of all compounds against time, distinguished by color according to their respective groups. To achieve a comprehensive understanding, we generated scatterplots for compounds across three distinct matrices---namely, whole blood, oral fluid, and breath. This analysis encompasses various timepoints and considers different treatments, namely, placebo, low dose, and high dose.
@@ -294,13 +289,8 @@ compounds_OF = compounds_OF[- c(4)]
 
 ```
 
-<<<<<<< HEAD
 ## Analysis
 ### Calculating sensitivity and specificity.
-=======
-#### Calculating sensitivity and specificity.
-
->>>>>>> 071f6c9873b3f21eaaccd36864855281bd9c697e
 ```{r, cache=TRUE}
 output_WB <- map_dfr(compounds_WB,
                      ~ sens_spec_cpd(
@@ -359,7 +349,7 @@ plot_grid(
 
 ```
 
-####Average sensitivity and specificity vs. detection limit
+### Average sensitivity and specificity vs. detection limit
 
 ```{r, cache=TRUE}
 output_WB_avg = average_sens_spec(output = output_WB)
@@ -385,12 +375,7 @@ compounds_OF = c("thc")
 compounds_BR = NULL
 ```
 
-<<<<<<< HEAD
 ### sensitivity vs. specificity
-=======
-#### sensitivity vs. specificity
->>>>>>> 071f6c9873b3f21eaaccd36864855281bd9c697e
-
 In this visual representation, we graph the sensitivity against specificity for each compound within every matrix, consolidating the data into a comprehensive plot. This collective visualization allows for a convenient comparison of the performance of various biomarkers concerning their specificity and sensitivity.
 
 ```{r fig.height=7, fig.width=15}
@@ -432,15 +417,12 @@ roc_OF = roc_plot(output_OF, tpts = length(unique(output_OF$time_start)), tissue
 # )
 ```
 
-<<<<<<< HEAD
 ### plot sensitivity and speciticity over time given specific cutoffs
-=======
 It should be apparent that OF-THC is the superior choice. now we dig deeper into OF-THC and find the specific cutoff. referring back to the Average sensitivity and specificity vs. detection limit plot, we see that the detection limit is at...very close to 0 when both sensitivity and specificity are high. Let's try out some more cutoffs close to 0.
 
-#### plot sensitivity and specificity over time given specific cutoffs
+### plot sensitivity and specificity over time given specific cutoffs
 
 Taking a deeper dive into sensitivity and specificity over time over time for the measurement of `THC` in **Blood** and **Oral Fluid** tissues. In direct comparison between the two measurement methods of `THC`, it becomes evident that **Oral Fluid** outshines its counterpart in terms of both sensitivity and specificity, particularly within the critical time span of three hours post-smoking.
->>>>>>> 071f6c9873b3f21eaaccd36864855281bd9c697e
 
 ```{r}
 #pass specific cutoff into splits parameter
@@ -462,18 +444,15 @@ plot_cutoffs(dataset=OF_THC,
              x_labels=NULL)
 
 ```
-<<<<<<< HEAD
+
 the average sensitivity is a lot more sensitive (ha) to change than the average specificity - specificity only dips in the 31-90min window when the cutoff is lowered, whereas a lower cutoff increases overall sensitivity all across the board, no matter the time. 
-=======
+
 
 the average sensitivity is a lot more sensitive (ha) to change than the average specificity - specificity only dips in the 31-90min window when the cutoff is lowered, whereas a lower cutoff increases overall sensitivity all across the board, no matter the time. additionally, this 31-90min window where the specificity is heavily effected by a low cutoff is, in my opinion, trivial. it should be quite apparent that someone is high if they smoked within the last 90 min. a lowered specificity in this time frame isnt cause for too much concern, considering how much sensitivity is gained via using a low cutoff.
->>>>>>> 071f6c9873b3f21eaaccd36864855281bd9c697e
 
 in a nutshell: a low cutoff is optimal. approxiamately somewhere between 0-2. let's test more cutoffs in this range:
 
 ```{r}
-<<<<<<< HEAD
-=======
 OF_THC <- sens_spec_cpd(
   dataset = OF,
   cpd = 'thc',
@@ -490,7 +469,6 @@ of_levels <- c("pre-smoking\nN=192", "0-30\nmin\nN=192", "31-90\nmin\nN=117",
                "91-180\nmin\nN=99", "181-210\nmin\nN=102", "211-240\nmin\nN=83",
                "241-270\nmin\nN=90",  "271+\nmin\nN=76")
 
->>>>>>> 071f6c9873b3f21eaaccd36864855281bd9c697e
 plot_cutoffs(dataset=OF_THC, 
              timepoint_use_variable=OF$timepoint_use, 
              tissue="Oral Fluid", 
@@ -525,33 +503,34 @@ oh we found it. the place where they intersect is the maximum of sensitivity+spe
 
 ```{r}
 output_OF_avg |>
-  filter(abs(average_sensitivity-average_specificity) < 0.01) |>
-  mutate(diff = abs(average_sensitivity-average_specificity))
+  mutate(diff = abs(average_sensitivity-average_specificity)) |>
+  arrange(diff)
 ```
 
 at cutoff 0.82-0.90, the difference between the average sensitivity and average specificity is minimized. we'll pick 0.85 for aestheicism's sake.
 
-<<<<<<< HEAD
 ## Results & Discussion
+During our thorough exploratory data analysis, a discernible pattern emerged, highlighting the potency of the `THC` compound in effectively indicating recent marijuana usage. Consequently, our focus in the data analysis section specifically hones in on the sensitivity and specificity cutoff measurements within the **Blood** and **Oral Fluid** tissues. Notably, **Oral Fluid** consistently exhibits superior sensitivity across all timepoints. By scrutinizing the Receiver Operating Characteristic (ROC) curve comparing the `THC` measurements in Blood and Oral Fluid, a clear trend emerges -- Oral Fluid surpasses Blood in accuracy. In simpler terms, **Oral Fluid** proves more adept at detecting recent marijuana joint usage compared to its **Blood** counterpart. This confirmation underscores the `THC` measurement in Oral Fluid as the paramount biomarker for recent use.
+
+Moving forward, our focus shifts to determining the optimal cutoff values for both sensitivity and specificity. To achieve this, we calculate the average sensitivity and specificity across all time windows for various detection limits, identifying the point at which these metrics intersect -- a key indicator of the optimal cutoff. Upon plotting the graph and meticulously examining the associated table, a convergence becomes evident at detection limits ranging from `0.82` to `0.90`. Hence, it becomes apparent that the `0.82` to `0.90` detection limit of the `THC` compound in Oral Fluid stands out as the most effective biomarker for recent use.
+
+Moreover, our exploration extends to a broader question. The visualizations shed light on the distinct responses of various compounds to marijuana dosage. Notably, we focus on key comparisons: `CBG` with `THC` in Blood, `CBN` with `CBG` in Oral Fluid, and `CBG` with `THCV` in Oral Fluid. The analysis of `CBG` with `THC` in Blood reveals a noteworthy observation -- the coefficient of `THC` in the low dose group significantly exceeds that in the high dose group. This implies that, for the low dose group, each increment in `THC` correlates more strongly with `CBG` compared to the high dose group. Shifting attention to the comparison between `CBN` with `CBG` in Oral Fluid, the coefficient of `CBG` in the high dose group is notably higher. This suggests that as the dosage increases, a heightened correlation emerges between `CBG` and `CBN`. These nuanced insights deepen our understanding of compound interactions in response to varying marijuana doses.
+
+The results of our case study on biomarkers of recent marijuana use reveal intriguing insights into the choice of compound, matrix, and cutoff for effective detection. The overarching goal was to identify the most potent biomarker that, when combined with a specific matrix and cutoff, can reliably indicate recent marijuana use within a three-hour timeframe.
+
+Our analysis consistently points to `THC` in oral fluid as the optimal biomarker for recent marijuana use. The scatterplots depicting compound measurements over time clearly show a distinct separation between the placebo and `THC` treatment groups, particularly in oral fluid. The ROC curve analysis further supports this conclusion, with oral fluid `THC` demonstrating superior sensitivity across all time points compared to other matrices. The enhanced sensitivity in oral fluid makes it a compelling choice for detecting recent marijuana use accurately.
+
+To determine the most effective cutoff for sensitivity and specificity, we conducted a thorough analysis, revealing that a cutoff value between `0.82` and `0.90` maximizes the balance between sensitivity and specificity. We opted for `0.85` as the optimal cutoff, considering the intersection point where the difference between average sensitivity and specificity is minimized. This ensures a practical and balanced approach for identifying recent marijuana use.
+
+
+### Limitations & Suggestions
+there are some other possible ways of going about this... for example, someone who is quite recently high should be obviously high to an officer, so it is viable to give the samples in the 0-31min time window less weight when considering overall sensitivity and specificity. my reasoning for not doing is because any sort of "weight" would be quite arbitrary and meaningless.
+
+## Conclusion
 the optimal biomarker is OF,THC, at cutoff = 0.85.
 
-
-=======
-## conclusion
->>>>>>> 071f6c9873b3f21eaaccd36864855281bd9c697e
-
-the optimal biomarker is OF,THC, at cutoff = 0.85.
-
-<<<<<<< HEAD
 ## Extended Question  
-
 ###  Extended Question: wrangling  
-=======
-### extended question
-
-#### wrangling
->>>>>>> 071f6c9873b3f21eaaccd36864855281bd9c697e
-
 ```{r}
 WB_long = WB |>
   pivot_longer(6:13, names_to = "compound")
@@ -570,9 +549,9 @@ This one is SUPER interesting. Some of the pairplots we went over in lecture not
 
 Here's a few of the more obvious ones:
 
-<<<<<<< HEAD
 ```{r fig.width=9}
-OF = OF_ex
+OF = OF_ex |>
+  filter(treatment != "Placebo")
 
   ggplot(data = OF,
        mapping = aes(y = thc, x = cbn, color = treatment)) +
@@ -585,6 +564,9 @@ OF = OF_ex
     geom_point() +
     geom_smooth(method = "lm", formula = y ~ x)
 ```
+We fit 2 linear models on low dose group and high dose group respectivly. Quantifying the degree of change in correlation coefficients for each compound under different dosage conditions. This approach could provide insights into the magnitude of variations in compound interactions.
+
+also, we are removing the placebo group since it is not of interest. 
 
 this seems to show that even though low dose/high dose doesn't effect chemical concentration overall (as shown in the plots in lecture notes), they do change the correlation between chemicals. Maybe a potention extended question would be "do some compound repsond more to high dose/low dose compared to the other?"
 
@@ -595,182 +577,67 @@ If there is, in fact, some significant difference between compound correlation b
 for now lets do some EDA first.
 
 ### Extended Question: EDA
-lets do a little gut check. since samples from different treatment yield different correlation between compounds, why does treatment not effect the actual distribution of the measuremnt of the compound...?
+fit single variable linear model
+1. value: thc, explanatory variable: cbg
 ```{r}
-ggplot(data = OF, mapping = aes(x = log(cbg))) +
-  geom_histogram() +
-  facet_wrap(~ treatment)
-
-ggplot(data = OF, mapping = aes(x = log(thc))) +
-  geom_histogram() +
-  facet_wrap(~ treatment)
-```
-that *is* pretty weird. they have basically the same distribution. 
-
-oh we can do a model of predicting one comp from other
-and another model w one comp + treatment
-
-=======
-```{r}
-ggplot(data = WB,
-       aes(y = cbg, x = thc, color = treatment)) +
-  geom_point(alpha = 0.5) +
-  geom_smooth(
-    method = "lm",
-    # Use linear regression
-    formula = y ~ x,
-    # Specify the formula for the linear model
-    se = FALSE,
-    # Don't show the confidence interval
-    data = WB |> filter(treatment == "5.9% THC (low dose)"),
-    # Filter for low dose
-    color = "green"
-  ) +
-  geom_smooth(
-    method = "lm",
-    formula = y ~ x,
-    se = FALSE,
-    data = WB |> filter(treatment == "13.4% THC (high dose)"),
-    # Filter for high dose
-    color = "blue"
-  ) +
-  facet_wrap(~ group, scales = "free")
-
-ggplot(data = OF,
-       aes(y = thc, x = cbg, color = treatment)) +
-  geom_point(alpha = 0.5) +
-  geom_smooth(
-    method = "lm",
-    formula = y ~ x,
-    se = FALSE,
-    data = OF |> filter(treatment == "5.9% THC (low dose)"),
-    color = "green"
-  ) +
-  geom_smooth(
-    method = "lm",
-    formula = y ~ x,
-    se = FALSE,
-    data = OF |> filter(treatment == "13.4% THC (high dose)"),
-    color = "blue"
-  ) +
-  facet_wrap( ~ group, scales = "free")
-
-ggplot(data = OF,
-       aes(y = cbn, x = cbg, color = treatment)) +
-  geom_point(alpha = 0.5) +
-  geom_smooth(
-    method = "lm",
-    formula = y ~ x,
-    se = FALSE,
-    data = OF |> filter(treatment == "5.9% THC (low dose)"),
-    color = "green"
-  ) +
-  geom_smooth(
-    method = "lm",
-    formula = y ~ x,
-    se = FALSE,
-    data = OF |> filter(treatment == "13.4% THC (high dose)"),
-    color = "blue"
-  ) +
-  facet_wrap( ~ group, scales = "free")
-
-ggplot(data = OF,
-       aes(y = cbg, x = thcv, color = treatment)) +
-  geom_point(alpha = 0.5) +
-  geom_smooth(
-    method = "lm",
-    formula = y ~ x,
-    se = FALSE,
-    data = OF |> filter(treatment == "5.9% THC (low dose)"),
-    color = "green"
-  ) +
-  geom_smooth(
-    method = "lm",
-    formula = y ~ x,
-    se = FALSE,
-    data = OF |> filter(treatment == "13.4% THC (high dose)"),
-    color = "blue"
-  ) +
-  facet_wrap( ~ group, scales = "free")
-```
-
-In the visualization, we systematically analyzed each compound's correlation patterns under low and high doses to discern whether particular compounds showcase distinct responses to dosage variations. We fit 2 linear models on low dose group and high dose group respectivly. Quantifying the degree of change in correlation coefficients for each compound under different dosage conditions. This approach could provide insights into the magnitude of variations in compound interactions.
-
-```{r}
-WB_low <- WB |>
-  filter(treatment == "5.9% THC (low dose)")
-WB_high <- WB |>
-  filter(treatment == "13.4% THC (high dose)")
-
-#linear regression `cbg ~ thc` for 5.9% THC (low dose) group
-linear_reg() |>
+lm_cbg = linear_reg() |>
   set_engine("lm") |>
-  fit(cbg ~ thc, data = WB_low) |>
-  tidy()
+  fit(thc ~ cbg, data = OF) 
 
-#linear regression `cbg ~ thc` for 13.4% THC (high dose) group
-linear_reg() |>
-  set_engine("lm") |>
-  fit(cbg ~ thc, data = WB_high) |>
-  tidy()
+lm_cbg
+glance(lm_cbg)
 ```
+here are resulting linear model is thc = 14.41cbg + 39.8 with an R^2 of 0.85 - which is already quite high. 
 
+now we test if the addition of treatment significantly improves the model by doing multiple linear regression:
+
+```{r}
+#multiple linear regression model with only main effect
+mlm_cbg1 = linear_reg() |>
+  set_engine("lm") |>
+  fit(thc ~ cbg + treatment, data = OF) 
+
+#multiple linear regression model with main effect + interaction effect
+mlm_cbg2 = linear_reg() |>
+  set_engine("lm") |>
+  fit(thc ~ cbg * treatment, data = OF) 
+
+mlm_cbg1
+glance(mlm_cbg1)
+
+mlm_cbg2
+glance(mlm_cbg2)
+```
+Adding in treatment as another explanatory variable and including interaction effects produces a noticably more accurate model - with a R^2 of ~0.97. 
+
+Just to be thorough, et's try another way. Here we fit a linear model for high does and low dose group *separately*. 
 ```{r}
 OF_low <- OF |>
   filter(treatment == "5.9% THC (low dose)")
+
 OF_high <- OF |>
   filter(treatment == "13.4% THC (high dose)")
 
 #linear regression `cbn ~ cbg` for 5.9% THC (low dose) group
-linear_reg() |>
+lr_cbg_low = linear_reg() |>
   set_engine("lm") |>
-  fit(cbn ~ cbg, data = OF_low) |>
-  tidy()
+  fit(cbn ~ cbg, data = OF_low)
+
+glance(lr_cbg_low)
 
 #linear regression `cbn ~ cbg` for 13.4% THC (high dose) group
-linear_reg() |>
+lr_cbg_high = linear_reg() |>
   set_engine("lm") |>
-  fit(cbn ~ cbg, data = OF_high) |>
-  tidy()
+  fit(cbn ~ cbg, data = OF_high) 
+
+glance(lr_cbg_high)
+
 ```
 
-```{r}
-#linear regression `cbg ~ thcv` for 5.9% THC (low dose) group
-linear_reg() |>
-  set_engine("lm") |>
-  fit(cbg ~ thcv, data = OF_low) |>
-  tidy()
 
-#linear regression `cbg ~ thcv` for 13.4% THC (high dose) group
-linear_reg() |>
-  set_engine("lm") |>
-  fit(cbg ~ thcv, data = OF_high) |>
-  tidy()
-```
 
-### Results/Discussion
-
-During our thorough exploratory data analysis, a discernible pattern emerged, highlighting the potency of the `THC` compound in effectively indicating recent marijuana usage. Consequently, our focus in the data analysis section specifically hones in on the sensitivity and specificity cutoff measurements within the **Blood** and **Oral Fluid** tissues. Notably, **Oral Fluid** consistently exhibits superior sensitivity across all timepoints. By scrutinizing the Receiver Operating Characteristic (ROC) curve comparing the `THC` measurements in Blood and Oral Fluid, a clear trend emerges -- Oral Fluid surpasses Blood in accuracy. In simpler terms, **Oral Fluid** proves more adept at detecting recent marijuana joint usage compared to its **Blood** counterpart. This confirmation underscores the `THC` measurement in Oral Fluid as the paramount biomarker for recent use.
-
-Moving forward, our focus shifts to determining the optimal cutoff values for both sensitivity and specificity. To achieve this, we calculate the average sensitivity and specificity across all time windows for various detection limits, identifying the point at which these metrics intersect -- a key indicator of the optimal cutoff. Upon plotting the graph and meticulously examining the associated table, a convergence becomes evident at detection limits ranging from `0.82` to `0.90`. Hence, it becomes apparent that the `0.82` to `0.90` detection limit of the `THC` compound in Oral Fluid stands out as the most effective biomarker for recent use.
-
-Moreover, our exploration extends to a broader question. The visualizations shed light on the distinct responses of various compounds to marijuana dosage. Notably, we focus on key comparisons: `CBG` with `THC` in Blood, `CBN` with `CBG` in Oral Fluid, and `CBG` with `THCV` in Oral Fluid. The analysis of `CBG` with `THC` in Blood reveals a noteworthy observation -- the coefficient of `THC` in the low dose group significantly exceeds that in the high dose group. This implies that, for the low dose group, each increment in `THC` correlates more strongly with `CBG` compared to the high dose group. Shifting attention to the comparison between `CBN` with `CBG` in Oral Fluid, the coefficient of `CBG` in the high dose group is notably higher. This suggests that as the dosage increases, a heightened correlation emerges between `CBG` and `CBN`. These nuanced insights deepen our understanding of compound interactions in response to varying marijuana doses.
-
-## Conclusion
-
-The results of our case study on biomarkers of recent marijuana use reveal intriguing insights into the choice of compound, matrix, and cutoff for effective detection. The overarching goal was to identify the most potent biomarker that, when combined with a specific matrix and cutoff, can reliably indicate recent marijuana use within a three-hour timeframe.
-
-#### Primary Biomarker: THC in Oral Fluid
-
-Our analysis consistently points to `THC` in oral fluid as the optimal biomarker for recent marijuana use. The scatterplots depicting compound measurements over time clearly show a distinct separation between the placebo and `THC` treatment groups, particularly in oral fluid. The ROC curve analysis further supports this conclusion, with oral fluid `THC` demonstrating superior sensitivity across all time points compared to other matrices. The enhanced sensitivity in oral fluid makes it a compelling choice for detecting recent marijuana use accurately.
-
-#### Optimal Cutoff: 0.85
-
-To determine the most effective cutoff for sensitivity and specificity, we conducted a thorough analysis, revealing that a cutoff value between `0.82` and `0.90` maximizes the balance between sensitivity and specificity. We opted for `0.85` as the optimal cutoff, considering the intersection point where the difference between average sensitivity and specificity is minimized. This ensures a practical and balanced approach for identifying recent marijuana use.
-
-#### Extended Question: Dose-Response Relationships
+### Extended Question: Dose-Response Relationships
 
 Our exploration delved beyond the primary question to investigate dose-response relationships among different compounds. Notably, the correlation patterns between compounds varied under low and high dosage conditions. For instance, the correlation between `THC` and `CBG` in blood showed a more significant increase in the low dose group, indicating a potential sensitivity of certain compounds to dosage variations. This prompts an interesting follow-up question: "Do some compounds respond more to high dose/low dose compared to others?" Exploring this question could unveil nuanced insights into the interplay of different cannabinoids under varying dosage conditions.
 
 In conclusion, while our study provides valuable insights into recent marijuana use detection, continuous research and validation are crucial for translating these findings into practical applications, especially in fields such as workplace drug testing and law enforcement.
->>>>>>> 071f6c9873b3f21eaaccd36864855281bd9c697e
