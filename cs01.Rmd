@@ -9,7 +9,9 @@ output:
 
 ## Introduction
 
-For our case study, the primary focus is to figure out which compound is the best biomarker for recent use while also deciphering which matrix is most optimal as well. In further detail, the compound, which could be THC, CBN, etc., falls within one of three matrices of the following: blood, breath, and oral fluid. Within the time frame of three hours or 180 minutes, we would like to figure out which compound and it's respective matrix is the most potent so that we could extrapolate our findings to real life applications. The reason as to why this study is important is because accurately testing for marijuana usage is very important in different everyday scenarios. For example, THC in marijuana can affect an individuals motor skills, depth perception, and overall cognition. This then can hinder their ability to work effectively and safely. According to the National Institute on Drug Abuse, it is noted that employees that tested positive for marijuana had an increase of 55% when it came to workplace accidents and that they were responsible for another increase of 85% of work-related injuries [^1]. These liabilities can hurt the company and more importantly, the individual; hence why it is paramount for companies to run effective drug tests on their employees. Another example why finding out which compound and matrix is most effective to use when conducting a drug test is for scenarios in which we'd like to find out if a driver is under the influence or not. Quoted directly from the National Highway Traffic Safety Administration, "In the 2013-2014 survey [^2], 12.6 percent of weekend nighttime drivers tested positive for marijuana. That's a 48-percent increase in less than 10 years" [^3].
+Accurately testing for marijuana usage is very important in different everyday scenarios. For example, THC in marijuana can affect an individuals motor skills, depth perception, and overall cognition. This then can hinder their ability to work effectively and safely. According to the National Institute on Drug Abuse, it is noted that employees that tested positive for marijuana had an increase of 55% when it came to workplace accidents and that they were responsible for another increase of 85% of work-related injuries [^1]. These liabilities can hurt the company and more importantly, the individual; hence why it is paramount for companies to run effective drug tests on their employees. Another example why finding out which compound and matrix is most effective to use when conducting a drug test is for scenarios in which we'd like to find out if a driver is under the influence or not. Quoted directly from the National Highway Traffic Safety Administration, "In the 2013-2014 survey [^2], 12.6 percent of weekend nighttime drivers tested positive for marijuana. That's a 48-percent increase in less than 10 years" [^3].
+
+For our case study, the primary focus is to figure out which compound from which matrix (whole blood, breath, oral fluid) is the best bio-marker for recent use, with "recent use" definied to be within the last 3 hours. 
 
 [^1]: (2023) Marijuana at Work: What Employers Need to Know. NSC. <https://www.nsc.org/nsc-membership/marijuana-at-work#>:\~:text=According%20to%20a%20study%20reported,Decreased%20productivity 
 
@@ -18,7 +20,6 @@ For our case study, the primary focus is to figure out which compound is the bes
 [^3]: Drug-Impaired Driving. NHTSA.
 <https://www.nhtsa.gov/risky-driving/drug-impaired-driving#>:\~:text=In%202007%2C%20NHTSA's%20National%20Roadside,in%20less%20than%2010%20years.
 
-All of this information is quite alarming and that is why we want to figure out which compound and matrix is the most effective to analyze when trying to figure out if an individual is under the influence or not. It is also worth mentioning that we'd like to go deeper with this study by trying to find out if some of these compounds are more sensitive to higher or lower doses of marijuana. The relationship between these variables can provide us with substantial information in regards to figuring out if some compounds are worth paying more attention to than others. This ultimately saves the tester a lot of time when they're running a drug test on an individual.
 
 ```{r setup, include=FALSE}
 
@@ -52,8 +53,13 @@ library(viridis)
 
 -   Which compound, in which matrix, and at what cutoff is the best biomarker of recent use? (recent use is defined as 3h)
 -   Do some compounds respond more to higher or lower dosages of THC when being compared to one another?
+=======
+-   Which compound, in which matrix, and at what cutoff is the best bio-marker of recent use? (within 3h)
+-   what's the optimal model for the relationship between specific compounds?
 
 ## The Data
+
+The data we will be using comes from a placebo-controlled, double-blinded, randomized study published by Hoffman et. al. (2021). In the study, volunteers were randomly assigned to smoke a ciggertte containing placebo (0.02%), or 5.9% (low dose) or 13.4% (high dose) THC. Samples of whole blood (WB), oral fluid(OF), breath (BR) are taken before and after smoking. 
 
 ### Data Import
 
@@ -68,8 +74,6 @@ OF = read.csv("data/OF.csv")
 ### Data Wrangling
 
 We re-coded and re-leveled variables (`Treatment` and `Group`), cleans column names, and renames specific columns (`x11_oh_thc` to `thcoh`, `thc_v` to `thcv`, `thccooh_gluc` to `thc_cooh_gluc`, and `thccooh` to `thc_cooh`) in all 3 tables. Using `janitor` package to organized column names.
-
-\*\*Suggestion: add a new column recording whether someone should be determined to have recent THC use (THC group, within 3 hr of smoking) or not(all placebo group, or THC group outside the 3hr window)
 
 ```{r re-leveling-data}
 
@@ -114,7 +118,7 @@ compounds_BR <-  as.list(colnames(Filter(function(x) !all(is.na(x)), BR[6])))
 compounds_OF <-  as.list(colnames(Filter(function(x) !all(is.na(x)), OF[6:12])))
 ```
 
-Created 3 tables based on specific minutes and labeled accordingly, covering pre-smoking and subsequent post-smoking time periods for blood, breath, and oral fluid data.
+Then we created 3 tables based on specific minutes and labeled accordingly, covering pre-smoking and subsequent post-smoking time periods for blood, breath, and oral fluid data.
 
 ```{r table-creation}
 
@@ -236,11 +240,11 @@ OF_ex = drop_dups(OF)
 
 ## EDA
 
-### compounds measurements over time by treatment
+### Compounds Measurements Over Time By Treatment
 
-The following plots include of all compounds against time, distinguished by color according to their respective groups. To achieve a comprehensive understanding, we generated scatterplots for compounds across three distinct matrices---namely, whole blood, oral fluid, and breath. This analysis encompasses various timepoints and considers different treatments, namely, placebo, low dose, and high dose.
+The following plots include of all compounds against time, distinguished by color according to their respective groups. To achieve a comprehensive understanding, we generated scatterplots for compounds across three distinct matrices---namely, whole blood, oral fluid, and breath. This analysis encompasses various time points and considers different treatments, namely, placebo, low dose, and high dose.
 
-Upon close examination of the scatterplots, a noteworthy observation emerges, particularly concerning the **THC** biomarker in whole blood. This specific biomarker appears to offer a potentially enhanced indication of recent cannabis joint usage. The scatterplot reveals a discernible separation between the **placebo** and **THC** treatment groups, suggesting that the **THC** measurement in whole blood may serve as a more reliable indicator of recent cannabis joint consumption.
+Upon close examination of the scatter plots, a noteworthy observation emerges, particularly concerning the **THC** biomarker in whole blood. This specific biomarker appears to offer a potentially enhanced indication of recent cannabis joint usage. The scatter plot reveals a discernible separation between the **placebo** and **THC** treatment groups, suggesting that the **THC** measurement in whole blood may serve as a more reliable indicator of recent cannabis joint consumption.
 
 ```{r scatter-plots}
 
@@ -261,7 +265,7 @@ scatter_BR <- map(compounds_BR, ~ compound_scatterplot_group_by_treatment(
 
 ```
 
-In the presented set of scatterplots, all compounds are graphically depicted against time, with color distinctions denoting different treatment conditions and a log transformation applied to the y-axis, which represents the respective compound measurements. A comparative analysis with the previous scatterplots reveals a modification: specifically, a log transformation has been applied to the y-axis, providing an alternative perspective on the measurement of the compounds.
+In the presented set of scatter plots, all compounds are graphically depicted against time, with color distinctions denoting different treatment conditions and a log transformation applied to the y-axis, which represents the respective compound measurements. A comparative analysis with the previous scatterplots reveals a modification: specifically, a log transformation has been applied to the y-axis, providing an alternative perspective on the measurement of the compounds.
 
 Upon closer examination, a notable observation emerges. The measurement of **THC** from breath exhibits a more discernible separation between the **placebo** and **THC** treatment groups in the log-transformed scatterplots. This suggests that the log transformation on the y-axis enhances the visibility of distinctions between the treatment conditions for **THC**. The log transformation, by compressing the scale, may unveil nuances and patterns that are not as apparent on a linear scale. This nuanced insight into **THC** measurements underscores the importance of considering the impact of transformation techniques when analyzing compound data over time in the context of different treatments. The enhanced separation observed in the log-transformed scatterplots could potentially provide valuable insights into the effects of treatments on **THC** levels and underscores the sensitivity of the chosen visualization approach.
 
@@ -323,6 +327,11 @@ output_OF <- map_dfr(compounds_OF,
                        timepoints = timepoints_OF
                      ))  |> clean_gluc()
 
+
+output_WB
+output_BR
+output_OF
+
 ```
 
 ### Cutoff vs. Sensitivity/Specificity
@@ -367,6 +376,7 @@ plot_grid(
 
 ```{r avg-sens-and-spec, cache=TRUE}
 
+### Average sensitivity and specificity vs. detection limit
 output_WB_avg = average_sens_spec(output = output_WB)
 output_OF_avg = average_sens_spec(output = output_OF)
 output_BR_avg = average_sens_spec(output = output_BR)
@@ -686,6 +696,8 @@ glance(lr_cbg_high)
 
 ### Extended Question: Dose-Response Relationships
 
-Our exploration delved beyond the primary question to investigate dose-response relationships among different compounds. Notably, the correlation patterns between compounds varied under low and high dosage conditions. For instance, the correlation between `THC` and `CBG` in blood showed a more significant increase in the low dose group, indicating a potential sensitivity of certain compounds to dosage variations. This prompts an interesting follow-up question: "Do some compounds respond more to high dose/low dose compared to others?" Exploring this question could unveil nuanced insights into the interplay of different cannabinoids under varying dosage conditions.
+### Extended Question: Results & Discussion
 
-In conclusion, while our study provides valuable insights into recent marijuana use detection, continuous research and validation are crucial for translating these findings into practical applications, especially in fields such as workplace drug testing and law enforcement.
+We attempted four different ways of modeling the relationship between CBG and THC: directly fitting a linear model with CBG as the only explanatory variable, fitting a multiple linear model with both CBG and treatment as explanatory variables but only with main effect,  multiple linear model with both CBG and treatment as explanatory variables with main effect and interaction effect, and finally fitting a linear model for the low dose and high dose group separately. Out of all these models, the multiple linear model with two explanatory variables and interaction effect proves to be the best model, explaining almost 97% of all observed data. This is quite impressive, especially considering that even the linear models that are fitted onto high dose and low dose group separately did not achieve this level of accuracy. 
+
+This result has both practical implications and potential to serve as grounf for further research. On the one hand, being able to accurate predict the value of another measurement based on one measurement and information about the dosage of THC can significantly lower the cost, time, and energy required for data collection. On the other hand, this predictive power of dosage in terms of how certain compounds relate to each other seem to suggest a non-linear relationship between dosage and certain compound's value. Further research is required to investigate this proposition.  
