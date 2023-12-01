@@ -9,7 +9,9 @@ output:
 
 ## Introduction
 
-For our case study, the primary focus is to figure out which compound is the best biomarker for recent use while also deciphering which matrix is most optimal as well. In further detail, the compound, which could be THC, CBN, etc., falls within one of three matrices of the following: blood, breath, and oral fluid. Within the time frame of three hours or 180 minutes, we would like to figure out which compound and it's respective matrix is the most potent so that we could extrapolate our findings to real life applications. The reason as to why this study is important is because accurately testing for marijuana usage is very important in different everyday scenarios. For example, THC in marijuana can affect an individuals motor skills, depth perception, and overall cognition. This then can hinder their ability to work effectively and safely. According to the National Institute on Drug Abuse, it is noted that employees that tested positive for marijuana had an increase of 55% when it came to workplace accidents and that they were responsible for another increase of 85% of work-related injuries [^1]. These liabilities can hurt the company and more importantly, the individual; hence why it is paramount for companies to run effective drug tests on their employees. Another example why finding out which compound and matrix is most effective to use when conducting a drug test is for scenarios in which we'd like to find out if a driver is under the influence or not. Quoted directly from the National Highway Traffic Safety Administration, "In the 2013-2014 survey [^2], 12.6 percent of weekend nighttime drivers tested positive for marijuana. That's a 48-percent increase in less than 10 years" [^3].
+Accurately testing for marijuana usage is very important in different everyday scenarios. For example, THC in marijuana can affect an individuals motor skills, depth perception, and overall cognition. This then can hinder their ability to work effectively and safely. According to the National Institute on Drug Abuse, it is noted that employees that tested positive for marijuana had an increase of 55% when it came to workplace accidents and that they were responsible for another increase of 85% of work-related injuries [^1]. These liabilities can hurt the company and more importantly, the individual; hence why it is paramount for companies to run effective drug tests on their employees. Another example why finding out which compound and matrix is most effective to use when conducting a drug test is for scenarios in which we'd like to find out if a driver is under the influence or not. Quoted directly from the National Highway Traffic Safety Administration, "In the 2013-2014 survey [^2], 12.6 percent of weekend nighttime drivers tested positive for marijuana. That's a 48-percent increase in less than 10 years" [^3].
+
+For our case study, the primary focus is to figure out which compound from which matrix (whole blood, breath, oral fluid) is the best bio-marker for recent use, with "recent use" definied to be within the last 3 hours. 
 
 [^1]:
     (2023) Marijuana at Work: What Employers Need to Know. NSC. <https://www.nsc.org/nsc-membership/marijuana-at-work#>:\~:text=According%20to%20a%20study%20reported,Decreased%20productivity 
@@ -18,7 +20,6 @@ For our case study, the primary focus is to figure out which compound is the bes
 
 [^3]: Drug-Impaired Driving. NHTSA. <https://www.nhtsa.gov/risky-driving/drug-impaired-driving#>:\~:text=In%202007%2C%20NHTSA's%20National%20Roadside,in%20less%20than%2010%20years.
 
-All of this information is quite alarming and that is why we want to figure out which compound and matrix is the most effective to analyze when trying to figure out if an individual is under the influence or not. It is also worth mentioning that we'd like to go deeper with this study by trying to find out if some of these compounds are more sensitive to higher or lower doses of marijuana. The relationship between these variables can provide us with substantial information in regards to figuring out if some compounds are worth paying more attention to than others. This ultimately saves the tester a lot of time when they're running a drug test on an individual.
 
 ```{r setup, include=FALSE}
 
@@ -49,10 +50,11 @@ library(cowplot)
 
 ## Question
 
--   Which compound, in which matrix, and at what cutoff is the best biomarker of recent use? (recent use is defined as 3h)
--   "do some compound respond more to high dose/low dose compared to the other?"
+-   Which compound, in which matrix, and at what cutoff is the best bio-marker of recent use? (within 3h)
+-   what's the optimal model for the relationship between specific compounds?
 
 ## The Data
+The data we will be using comes from a placebo-controlled, double-blinded, randomized study published by Hoffman et. al. (2021). In the study, volunteers were randomly assigned to smoke a ciggertte containing placebo (0.02%), or 5.9% (low dose) or 13.4% (high dose) THC. Samples of whole blood (WB), oral fluid(OF), breath (BR) are taken before and after smoking. 
 
 ### Data Import
 
@@ -67,9 +69,6 @@ OF = read.csv("data/OF.csv")
 ### Data Wrangling
 
 We re-coded and re-leveled variables (`Treatment` and `Group`), cleans column names, and renames specific columns (`x11_oh_thc` to `thcoh`, `thc_v` to `thcv`, `thccooh_gluc` to `thc_cooh_gluc`, and `thccooh` to `thc_cooh`) in all 3 tables. Using `janitor` package to organized column names.
-
-\*\*Suggestion: add a new column recording whether someone should be determined to have recent THC use (THC group, within 3 hr of smoking) or not(all placebo group, or THC group outside the 3hr window)
-
 ```{r re-leveling-data}
 
 OF <- OF |>
@@ -113,7 +112,7 @@ compounds_BR <-  as.list(colnames(Filter(function(x) !all(is.na(x)), BR[6])))
 compounds_OF <-  as.list(colnames(Filter(function(x) !all(is.na(x)), OF[6:12])))
 ```
 
-Created 3 tables based on specific minutes and labeled accordingly, covering pre-smoking and subsequent post-smoking time periods for blood, breath, and oral fluid data.
+Then we created 3 tables based on specific minutes and labeled accordingly, covering pre-smoking and subsequent post-smoking time periods for blood, breath, and oral fluid data.
 
 ```{r table-creation}
 
@@ -279,9 +278,9 @@ scatter_BR_by_treatment <- map(compounds_BR, ~ compound_scatterplot_group_by_tre
     timepoints=timepoints_BR))
 ```
 
-deleting compounds that obviously do not work from the compound data frame 
+We can see that some compounds' measurement are clearly not useful. Here we remove them from all future analysis. The compounds removed include:
 WB: cbd, thccooh, thccooh_gluc, thcv
-OF:thcoh
+OF: thcoh
 
 ```{r}
 compounds_WB = compounds_WB[- c(2, 5, 6, 8)]
@@ -312,6 +311,10 @@ output_OF <- map_dfr(compounds_OF,
                        cpd = all_of(.x),
                        timepoints = timepoints_OF
                      ))  |> clean_gluc()
+
+output_WB
+output_BR
+output_OF
 ```
 
 ### cutoff vs. sensitivity/specificity
@@ -350,7 +353,6 @@ plot_grid(
 ```
 
 ### Average sensitivity and specificity vs. detection limit
-
 ```{r, cache=TRUE}
 output_WB_avg = average_sens_spec(output = output_WB)
 output_OF_avg = average_sens_spec(output = output_OF)
