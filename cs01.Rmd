@@ -11,6 +11,8 @@ output:
 
 Accurately testing for marijuana usage is very important in different everyday scenarios. For example, THC in marijuana can affect an individuals motor skills, depth perception, and overall cognition. This then can hinder their ability to work effectively and safely. According to the National Institute on Drug Abuse, it is noted that employees that tested positive for marijuana had an increase of 55% when it came to workplace accidents and that they were responsible for another increase of 85% of work-related injuries [^1]. These liabilities can hurt the company and more importantly, the individual; hence why it is paramount for companies to run effective drug tests on their employees. Another example why finding out which compound and matrix is most effective to use when conducting a drug test is for scenarios in which we'd like to find out if a driver is under the influence or not. Quoted directly from the National Highway Traffic Safety Administration, "In the 2013-2014 survey [^2], 12.6 percent of weekend nighttime drivers tested positive for marijuana. That's a 48-percent increase in less than 10 years" [^3].
 
+All of this information is quite alarming and that is why we want to figure out which compound and matrix is the most effective to analyze when trying to figure out if an individual is under the influence or not. It is also worth mentioning that we'd like to go deeper with this study by trying to find out if some of these compounds are more sensitive to higher or lower doses of marijuana. The relationship between these variables can provide us with substantial information in regards to figuring out if some compounds are worth paying more attention to than others. This ultimately saves the tester a lot of time when they're running a drug test on an individual.
+
 For our case study, the primary focus is to figure out which compound from which matrix (whole blood, breath, oral fluid) is the best bio-marker for recent use, with "recent use" definied to be within the last 3 hours. 
 
 [^1]: (2023) Marijuana at Work: What Employers Need to Know. NSC. <https://www.nsc.org/nsc-membership/marijuana-at-work#>:\~:text=According%20to%20a%20study%20reported,Decreased%20productivity 
@@ -45,15 +47,9 @@ library(janitor)
 library(purrr)
 library(rstatix)
 library(cowplot)
-library(viridis)
-
 ```
 
 ## Question
-
--   Which compound, in which matrix, and at what cutoff is the best biomarker of recent use? (recent use is defined as 3h)
--   Do some compounds respond more to higher or lower dosages of THC when being compared to one another?
-=======
 -   Which compound, in which matrix, and at what cutoff is the best bio-marker of recent use? (within 3h)
 -   what's the optimal model for the relationship between specific compounds?
 
@@ -427,24 +423,6 @@ output_OF <- map_dfr(compounds_OF,
 roc_WB = roc_plot(output_WB, tpts = length(unique(output_WB$time_start)), tissue = "Blood")
 roc_OF = roc_plot(output_OF, tpts = length(unique(output_OF$time_start)), tissue = "Oral Fluid")
 
-# #arrange roc plots
-# roc_bottom_row <-
-#   plot_grid(
-#     roc_OF,
-#     roc_BR,
-#     labels = c('B', 'C'),
-#     label_size = 12,
-#     ncol = 2,
-#     rel_widths = c(0.66, .33)
-#   )
-# plot_grid(
-#   roc_WB,
-#   roc_bottom_row,
-#   labels = c('A', ''),
-#   label_size = 12,
-#   ncol = 1
-# )
-
 ```
 
 ### Plot Sensitivity and Speciticity Over Time Given Specific Cutoffs
@@ -583,7 +561,8 @@ BR_long <- BR |> pivot_longer(6)
 
 df_full <- bind_rows(WB_long, OF_long, BR_long)
 
-<<<<<<< HEAD
+```
+
 ### The Pairplot That Started it All
 ```{r}
 OF = OF_ex
@@ -594,18 +573,12 @@ pairs(OF[,unlist(compounds_OF)],
       cex=0.4, 
       cex.labels=0.6,
       labels=gsub('GLUC','gluc',gsub("_","-",toupper(colnames(OF[,unlist(compounds_OF)])))))
+
 ```
 
   This is a pair plot showing the correlation between different compounds in th OF matrix. Notice how some of them look like two separate lines. This should be a clear sign that there's some underlying variable that effects both of the compounds. After some trial and error, we found that this observation is due to the treatment variable - specifically, low dose and high dose group seems to have different slopes when it comes to the correlation between certain compounds. 
 
   Here's a few of the more obvious ones:
-=======
-```
-
-###Part 2:
-
-Here we will create a pair-plot to see how some variables might change how compounds correlate with each other. 
->>>>>>> e83f01b42b1ee15433c461af9f4f9f12dc5515e4
 
 ```{r fig.width=9}
 
@@ -636,9 +609,6 @@ graph_2 <- ggplot(data = OF, mapping = aes(y = thc, x = cbg, color = treatment))
 gridExtra::grid.arrange(graph_1, graph_2, ncol = 2)
 
 ```
-
-<<<<<<< HEAD
-
   Also, we are removing the placebo group since it is not of interest. 
 
   This seems to show that low dose/high dose they change the correlation between chemicals. Interesting. For this report, we will narrow our target of investigation to THC vs CBG in OF. 
@@ -649,23 +619,8 @@ gridExtra::grid.arrange(graph_1, graph_2, ncol = 2)
 
 ### Extended Question: EDA
   First we try fitting a single variable linear model with THC as the value, and CBG as the explanatory variable.
-```{r}
-=======
-We fit 2 linear models on low dose group and high dose group respectively. Quantifying the degree of change in correlation coefficients for each compound under different dosage conditions. This approach could provide insights into the magnitude of variations in compound interactions.
-
-This seems to show that even though low and high dosages don't affect chemical concentration overall, they do change the correlation between chemicals. 
-
-### Extended Question: EDA
-
-Firstly, we will fit a sngle variable linear model where: 
-
-Value: THC
-
-Explanatory Variable: CBG
 
 ```{r model}
-
->>>>>>> e83f01b42b1ee15433c461af9f4f9f12dc5515e4
 lm_cbg = linear_reg() |>
   set_engine("lm") |>
   fit(thc ~ cbg, data = OF) 
@@ -674,19 +629,12 @@ lm_cbg
 glance(lm_cbg)
 
 ```
-<<<<<<< HEAD
+
   Here the resulting linear model is THC = 14.41CBG + 39.8 with an R^2 of 0.85. 
 
   Now we test if the addition of treatment significantly improves the model by doing multiple linear regression:
-=======
-
-Here is our resulting linear model where: THC = 14.41CBG + 39.8 with an R^2 of 0.85 - which is already quite high. 
-
-Now we will test if the addition of treatment significantly improves the linear model by doing multiple linear regressions: 
 
 ```{r regressions}
->>>>>>> e83f01b42b1ee15433c461af9f4f9f12dc5515e4
-
 #multiple linear regression model with only main effect
 mlm_cbg1 = linear_reg() |>
   set_engine("lm") |>
@@ -704,20 +652,14 @@ mlm_cbg2
 glance(mlm_cbg2)
 
 ```
-<<<<<<< HEAD
+
   Adding in treatment as another explanatory variable and including interaction effects produces a noticeably more accurate model - with a R^2 of ~0.97. 
 
   Just to be thorough, let's try another way. Here we fit a linear model for high does and low dose group *separately*. 
-```{r}
-=======
-
-Adding in treatment as another explanatory variable and including interaction effects produces a noticeably more accurate model - with a R^2 of ~0.97. 
-
-Just to be thorough, let's try another way. Here we fit a linear model for high does and low dose group *separately*. 
 
 ```{r extra-thorough}
 
->>>>>>> e83f01b42b1ee15433c461af9f4f9f12dc5515e4
+
 OF_low <- OF |>
   filter(treatment == "5.9% THC (low dose)")
 
@@ -739,8 +681,6 @@ lr_cbg_high = linear_reg() |>
 glance(lr_cbg_high)
 
 ```
-
-### Extended Question: Dose-Response Relationships
 
 ### Extended Question: Results & Discussion
 
