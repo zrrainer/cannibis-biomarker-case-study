@@ -545,11 +545,21 @@ BR_long <- BR |> pivot_longer(6)
 df_full <- bind_rows(WB_long, OF_long, BR_long)
 ```
 
-###part 2: BUT i have a different extended questgion we can look into
+### The Pairplot That Started it All
+```{r}
+OF = OF_ex
+compounds_OF <-  as.list(colnames(Filter(function(x) !all(is.na(x)), OF[6:12])))
 
-This one is SUPER interesting. Some of the pairplots we went over in lecture notes 12 looked like they has two separate lines, so I thought one of the variables might change how compounds correlate with each other - and they do! Namely, the low dose and high dose group seems to have different slopes when it comes to the correlation between certain compounds. 
+pairs(OF[,unlist(compounds_OF)], 
+      pch=19, 
+      cex=0.4, 
+      cex.labels=0.6,
+      labels=gsub('GLUC','gluc',gsub("_","-",toupper(colnames(OF[,unlist(compounds_OF)])))))
+```
 
-Here's a few of the more obvious ones:
+  This is a pair plot showing the correlation between different compounds in th OF matrix. Notice how some of them look like two separate lines. This should be a clear sign that there's some underlying variable that effects both of the compounds. After some trial and error, we found that this observation is due to the treatment variable - specifically, low dose and high dose group seems to have different slopes when it comes to the correlation between certain compounds. 
+
+  Here's a few of the more obvious ones:
 
 ```{r fig.width=9}
 OF = OF_ex |>
@@ -566,21 +576,18 @@ OF = OF_ex |>
     geom_point() +
     geom_smooth(method = "lm", formula = y ~ x)
 ```
-We fit 2 linear models on low dose group and high dose group respectivly. Quantifying the degree of change in correlation coefficients for each compound under different dosage conditions. This approach could provide insights into the magnitude of variations in compound interactions.
 
-also, we are removing the placebo group since it is not of interest. 
 
-this seems to show that even though low dose/high dose doesn't effect chemical concentration overall (as shown in the plots in lecture notes), they do change the correlation between chemicals. Maybe a potention extended question would be "do some compound repsond more to high dose/low dose compared to the other?"
+  Also, we are removing the placebo group since it is not of interest. 
 
-interesting. for the sake of our sanity, let's narrow our target of investigation to THC vs CBG in OF. 
+  This seems to show that low dose/high dose they change the correlation between chemicals. Interesting. For this report, we will narrow our target of investigation to THC vs CBG in OF. 
 
-If there is, in fact, some significant difference between compound correlation between different treatment, **we should be able to construct some sort of model that, given a sample of the measurement of those two compounds, would be able to predict which treatment group this sample is pulled from** to some meaningful degree of accuracy. 
+  If there is, in fact, some significant difference between compound correlation between different treatment, **we should be able to construct some sort of model that, given a sample of the measurement of those two compounds, would be able to predict which treatment group this sample is pulled from** to some meaningful degree of accuracy. 
 
-for now lets do some EDA first.
+  Let's do some analysis.
 
 ### Extended Question: EDA
-fit single variable linear model
-1. value: thc, explanatory variable: cbg
+  First we try fitting a single variable linear model with THC as the value, and CBG as the explanatory variable.
 ```{r}
 lm_cbg = linear_reg() |>
   set_engine("lm") |>
@@ -589,9 +596,9 @@ lm_cbg = linear_reg() |>
 lm_cbg
 glance(lm_cbg)
 ```
-here are resulting linear model is thc = 14.41cbg + 39.8 with an R^2 of 0.85 - which is already quite high. 
+  Here the resulting linear model is THC = 14.41CBG + 39.8 with an R^2 of 0.85. 
 
-now we test if the addition of treatment significantly improves the model by doing multiple linear regression:
+  Now we test if the addition of treatment significantly improves the model by doing multiple linear regression:
 
 ```{r}
 #multiple linear regression model with only main effect
@@ -610,9 +617,9 @@ glance(mlm_cbg1)
 mlm_cbg2
 glance(mlm_cbg2)
 ```
-Adding in treatment as another explanatory variable and including interaction effects produces a noticably more accurate model - with a R^2 of ~0.97. 
+  Adding in treatment as another explanatory variable and including interaction effects produces a noticeably more accurate model - with a R^2 of ~0.97. 
 
-Just to be thorough, et's try another way. Here we fit a linear model for high does and low dose group *separately*. 
+  Just to be thorough, let's try another way. Here we fit a linear model for high does and low dose group *separately*. 
 ```{r}
 OF_low <- OF |>
   filter(treatment == "5.9% THC (low dose)")
@@ -640,6 +647,6 @@ glance(lr_cbg_high)
 
 ### Extended Question: Results & Discussion
 
-We attempted four different ways of modeling the relationship between CBG and THC: directly fitting a linear model with CBG as the only explanatory variable, fitting a multiple linear model with both CBG and treatment as explanatory variables but only with main effect,  multiple linear model with both CBG and treatment as explanatory variables with main effect and interaction effect, and finally fitting a linear model for the low dose and high dose group separately. Out of all these models, the multiple linear model with two explanatory variables and interaction effect proves to be the best model, explaining almost 97% of all observed data. This is quite impressive, especially considering that even the linear models that are fitted onto high dose and low dose group separately did not achieve this level of accuracy. 
+  We attempted four different ways of modeling the relationship between CBG and THC: directly fitting a linear model with CBG as the only explanatory variable, fitting a multiple linear model with both CBG and treatment as explanatory variables but only with main effect,  multiple linear model with both CBG and treatment as explanatory variables with main effect and interaction effect, and finally fitting a linear model for the low dose and high dose group separately. Out of all these models, the multiple linear model with two explanatory variables and interaction effect proves to be the best model, explaining almost 97% of all observed data. This is quite impressive, especially considering that even the linear models that are fitted onto high dose and low dose group separately did not achieve this level of accuracy. 
 
-This result has both practical implications and potential to serve as grounf for further research. On the one hand, being able to accurate predict the value of another measurement based on one measurement and information about the dosage of THC can significantly lower the cost, time, and energy required for data collection. On the other hand, this predictive power of dosage in terms of how certain compounds relate to each other seem to suggest a non-linear relationship between dosage and certain compound's value. Further research is required to investigate this proposition.  
+  This result has both practical implications and potential to serve as grounf for further research. On the one hand, being able to accurate predict the value of another measurement based on one measurement and information about the dosage of THC can significantly lower the cost, time, and energy required for data collection. On the other hand, this predictive power of dosage in terms of how certain compounds relate to each other seem to suggest a non-linear relationship between dosage and certain compound's value. Further research is required to investigate this proposition.  
