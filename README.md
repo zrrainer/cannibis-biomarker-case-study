@@ -1,6 +1,6 @@
 --A case study on biomarkers of recent cannibis use.
 
-Using data drawn placebo-controlled, double-blinded, randomized study conducted by Fitzgerald et al.<sup>1</sup>, data anlysis was conducted to determine the best biomarker for indicating recent cannibis use. 
+Using data drawn from a placebo-controlled, double-blinded, randomized study conducted by Fitzgerald et al.<sup>1</sup>, data anlysis was conducted to determine the best biomarker for indicating recent cannibis use. 
 
 Files containing the raw data has been omitted, as the data is not punlically available. As a result, the rmd file will not run as intended, and is only included for reference only. 
 
